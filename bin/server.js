@@ -1,3 +1,7 @@
+/*
+  Create and launch the koa web server.
+*/
+
 const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const convert = require('koa-convert')
@@ -11,6 +15,9 @@ const cors = require('kcors')
 
 const config = require('../config')
 const errorMiddleware = require('../src/middleware')
+
+// Winston logger
+const wlogger = require('../src/utils/logging')
 
 async function startServer () {
   // Create a Koa instance.
@@ -42,7 +49,7 @@ async function startServer () {
   modules(app)
 
   // Enable CORS for testing
-  // app.use(cors({origin: '*'}))
+  app.use(cors({ origin: '*' }))
 
   // MIDDLEWARE END
 
@@ -51,6 +58,7 @@ async function startServer () {
   // })
   await app.listen(config.port)
   console.log(`Server started on ${config.port}`)
+  wlogger.info(`Server started on ${config.port}`)
 
   return app
 }

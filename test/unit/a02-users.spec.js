@@ -1,14 +1,14 @@
 const expect = require('chai').expect
 const should = require('chai').should
 const utils = require('./utils')
-
 const rp = require('request-promise')
 const assert = require('chai').assert
+const config = require('../../config')
 
 const util = require('util')
 util.inspect.defaultOptions = { depth: 1 }
 
-const LOCALHOST = 'http://localhost:5000'
+const LOCALHOST = `http://localhost:${config.port}`
 
 should()
 const context = {}

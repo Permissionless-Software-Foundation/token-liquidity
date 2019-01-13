@@ -1,3 +1,9 @@
 const server = require('./bin/server.js')
+const { startTokenLiquidity } = require('./bin/token-liquidity')
 
-server.startServer()
+async function startServer () {
+  await server.startServer()
+  await startTokenLiquidity()
+}
+
+startServer()

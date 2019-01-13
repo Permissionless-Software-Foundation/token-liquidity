@@ -1,0 +1,4 @@
+#!/bin/bash
+export NETWORK=testnet
+export APP_ENV=production
+npm start

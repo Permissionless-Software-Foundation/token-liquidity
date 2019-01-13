@@ -1,0 +1,34 @@
+# Start the testnet server with the command 'docker-compose up -d'
+
+token-liquidity-mongodb:
+  image: mongo
+  ports:
+    - "3500:27017" # <host port>:<container port>
+  volumes:
+    - ./database:/data/db
+  command: mongod --smallfiles --logpath=/dev/null # -- quiet
+  restart: always
+
+token-liquidity-testnet:
+  build: ./testnet
+  dockerfile: Dockerfile
+  links:
+    - token-liquidity-mongodb
+  ports:
+    - "5100:5100" # <host port>:<container port>
+  volumes:
+    - ./testnet/logs:/home/token/token-liquidity/logs
+    - ./testnet/state:/home/token/token-liquidity/state
+
+token-liquidity-mainnet:
+  build: ./mainnet
+  dockerfile: Dockerfile
+  links:
+    - token-liquidity-mongodb
+  ports:
+    - "5000:5000" # <host port>:<container port>
+  volumes:
+    - ./mainnet/logs:/home/token/token-liquidity/logs
+    - ./mainnet/state:/home/token/token-liquidity/state
+
+  restart: always

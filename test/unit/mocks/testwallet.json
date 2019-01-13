@@ -1,0 +1,26 @@
+{
+  "network": "testnet",
+  "mnemonic": "during ask there already rebel february switch pipe purity alert humor silent manual smart whale melody hybrid depend axis extra elevator struggle evidence matrix",
+  "rootAddress": "bchtest:qzsfqeqtdk6plsvglccadkqtf0trf2nyz58090e6tt",
+  "balance": 0.09999751999999999,
+  "nextAddress": 4,
+  "hasBalance": [
+    {
+      "index": 2,
+      "balance": 0.03,
+      "balanceSat": 3000000,
+      "unconfirmedBalance": 0,
+      "unconfirmedBalanceSat": 0,
+      "cashAddress": "bchtest:qzrg022p8ykc90c27gy808pmz3lzlwk6lg77y3h8fm"
+    },
+    {
+      "index": 3,
+      "balance": 0.06999752,
+      "balanceSat": 6999752,
+      "unconfirmedBalance": 0,
+      "unconfirmedBalanceSat": 0,
+      "cashAddress": "bchtest:qq4sx72yfuhqryzm9h23zez27n6n24hdavvfqn2ma3"
+    }
+  ],
+  "name": "demowallet"
+}

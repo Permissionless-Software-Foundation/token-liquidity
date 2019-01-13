@@ -1,0 +1,16 @@
+{
+  "NETWORK": "mainnet",
+  "port": 5000,
+  "TOKEN_ID": 249,
+  "BCH_ADDR": "bitcoincash:qzl6k0wvdd5ky99hewghqdgfj2jhcpqnfq8xtct0al",
+  "TOKENS_QTY_ORIGINAL": 5000,
+  "BCH_QTY_ORIGINAL": 25,
+  "session": "secret-boilerplate-token",
+  "token": "secret-jwt-token",
+  "database": "mongodb://172.17.0.1:3500/psf-token-server-prod",
+  "env": "production",
+  "bchBalance": 1.2831508,
+  "tokenBalance": "19882.49183413",
+  "bchBalancen": 1.2831508,
+  "usdPerBCH": "128.505"
+}

@@ -1,0 +1,16 @@
+{
+  "NETWORK": "testnet",
+  "port": 5100,
+  "TOKEN_ID": 556,
+  "BCH_ADDR": "bchtest:qq8wqgxq0uu4y6k92pw9f7s6hxzfp9umsvtg39pzqf",
+  "TOKENS_QTY_ORIGINAL": 5000,
+  "BCH_QTY_ORIGINAL": 25,
+  "session": "secret-boilerplate-token",
+  "token": "secret-jwt-token",
+  "database": "mongodb://172.17.0.1:3500/psf-token-server-prod",
+  "env": "production",
+  "bchBalance": 5.82337992,
+  "tokenBalance": "12302.12989813",
+  "bchBalancen": 5.82337992,
+  "usdPerBCH": "128.505"
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+export NETWORK=mainnet
+export APP_ENV=production
+npm start

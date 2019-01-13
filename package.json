@@ -1,11 +1,12 @@
 {
-  "name": "babel-free-koa2-api-boilerplate",
+  "name": "token-liquidity",
   "version": "3.0.0",
-  "description": "Koa2 boilerplate covering essentials for APIs, babel removed as a dependency",
+  "description": "BCH Wormhole Token Liquidity Web App for the Permissionless Software Foundation",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "NODE_ENV=test nyc --reporter=text ./node_modules/.bin/mocha --exit",
+    "test": "APP_ENV=test nyc --reporter=text ./node_modules/.bin/mocha --exit --timeout 15000 test/unit",
+    "test:integration": "APP_ENV=integration nyc --reporter=text ./node_modules/.bin/mocha --exit --timeout 25000 test/unit",
     "lint": "eslint src/**/*.js",
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -20,19 +21,24 @@
     "es6",
     "mongoose",
     "passportjs",
-    "apidoc"
+    "apidoc",
+    "bitcoin-cash",
+    "bitcoin",
+    "BCH",
+    "wormhole"
   ],
   "author": "Chris Troutner <chris.troutner@gmail.com>",
   "license": "MIT",
   "apidoc": {
-    "title": "babel-free-koa2-api-boilerplate",
+    "title": "token-liquidity",
     "url": "localhost:5000"
   },
-  "repository": "christroutner/babel-free-koa2-api-boilerplate",
+  "repository": "Permissionless-Software-Foundation/token-liquidity",
   "dependencies": {
     "apidoc": "^0.17.6",
     "bcryptjs": "^2.4.3",
     "glob": "^7.0.0",
+    "got": "^9.5.0",
     "jsonwebtoken": "^8.3.0",
     "kcors": "^2.2.1",
     "koa": "^2.5.0",
@@ -47,13 +53,17 @@
     "mongoose": "^5.0.8",
     "passport-local": "^1.0.0",
     "request": "^2.85.0",
-    "request-promise": "^4.2.2"
+    "request-promise": "^4.2.2",
+    "shelljs": "^0.8.3",
+    "winston": "^3.1.0",
+    "winston-daily-rotate-file": "^3.5.1",
+    "wormhole-sdk": "^1.5.3"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
     "eslint": "^5.8.0",
-    "eslint-config-promise": "^1.2.6",
+    "eslint-config-promise": "^2.0.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-node": "^8.0.0",
@@ -62,6 +72,8 @@
     "mocha": "^5.2.0",
     "nyc": "^13.1.0",
     "semantic-release": "^15.12.5"
+    "sinon": "^7.2.2"
+
   },
   "release": {
     "publish": [
