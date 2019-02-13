@@ -9,8 +9,7 @@
   "token": "secret-jwt-token",
   "database": "mongodb://172.17.0.1:3500/psf-token-server-prod",
   "env": "production",
-  "bchBalance": 1.2831508,
-  "tokenBalance": "19882.49183413",
-  "bchBalancen": 1.2831508,
-  "usdPerBCH": "128.505"
+  "bchBalance": 1.28324034,
+  "tokenBalance": "19882.09163133",
+  "usdPerBCH": "132.495"
 }

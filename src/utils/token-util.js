@@ -123,16 +123,16 @@ async function compareLastTransaction (obj, tknLib, bchLib, wormhole) {
 
       // Is this a new, unseen transaction?
       if (lastTransaction !== txid && notSeen) {
-        wlogger.debug(`New TXID ${lastTransaction} detected.`)
+        wlogger.info(`New TXID ${lastTransaction} detected.`)
 
         // Get the sender's address for this transaction.
         const userAddr = await getUserAddr(lastTransaction, wormhole)
-        wlogger.debug(`userAddr: ${util.inspect(userAddr)}`)
+        wlogger.info(`userAddr: ${util.inspect(userAddr)}`)
 
         // Exit if the userAddr is the same as the bchAddr for this app.
         // This occurs when the app sends bch or tokens to the user.
         if (userAddr === bchAddr) {
-          wlogger.debug(`userAddr === bchAddr. Exiting compareLastTransaction()`)
+          wlogger.info(`userAddr === app address. Exiting compareLastTransaction()`)
           seenTxs.push(lastTransaction)
           const retObj = {
             lastTransaction: lastTransaction,
@@ -148,7 +148,9 @@ async function compareLastTransaction (obj, tknLib, bchLib, wormhole) {
 
         // User sent tokens.
         if (isTokenTx) {
-        // Exchange tokens for BCH
+          wlogger.info(`${isTokenTx} tokens recieved.`)
+
+          // Exchange tokens for BCH
           const exchangeObj = {
             tokenIn: isTokenTx,
             tokenBalance: Number(tokenBalance),
@@ -180,7 +182,7 @@ async function compareLastTransaction (obj, tknLib, bchLib, wormhole) {
         } else {
           // Get the BCH send amount.
           const bchQty = await recievedBch(lastTransaction, BCH_ADDR1, wormhole)
-          wlogger.debug(`${bchQty} BCH recieved.`)
+          wlogger.info(`${bchQty} BCH recieved.`)
 
           // Exchange BCH for tokens
           const exchangeObj = {

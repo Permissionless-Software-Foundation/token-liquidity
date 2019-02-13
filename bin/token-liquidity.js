@@ -88,7 +88,7 @@ async function startTokenLiquidity () {
 
   // Periodically check the last transaction.
   setInterval(async function () {
-    console.log(`Checking transactions...`)
+    // console.log(`Checking transactions...`)
     const obj = {
       bchAddr: BCH_ADDR1,
       txid: lastTransaction,
@@ -107,8 +107,10 @@ async function startTokenLiquidity () {
     if (retObj.bchBalance) bchBalance = retObj.bchBalance
     if (retObj.tokenBalance) tokenBalance = retObj.tokenBalance
 
+    const now = new Date()
+
     // New Balances:
-    wlogger.info(`bchBalance: ${bchBalance}, tokenBalance: ${tokenBalance}`)
+    wlogger.info(`bchBalance: ${bchBalance}, tokenBalance: ${tokenBalance}, timestamp: ${now.toLocaleString()}`)
 
     config.bchBalance = bchBalance
     config.tokenBalance = tokenBalance
