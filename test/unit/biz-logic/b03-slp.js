@@ -10,12 +10,12 @@ const sinon = require('sinon')
 const cloneDeep = require('lodash.clonedeep')
 
 // Mocking-data
-const slpMockData = require('./mocks/slp.mock')
-const mockWallet = require('./mocks/testwallet.json')
+const slpMockData = require('../mocks/slp.mock')
+const mockWallet = require('../mocks/testwallet.json')
 
 // Local libraries.
-const config = require('../../config')
-const SLP = require('../../src/lib/slp')
+const config = require('../../../config')
+const SLP = require('../../../src/lib/slp')
 
 // Determine if this is a Unit or Integration test
 // If not specified, default to unit test.

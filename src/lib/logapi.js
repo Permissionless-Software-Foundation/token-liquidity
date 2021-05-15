@@ -1,64 +1,59 @@
+const lineReader = require('line-reader')
+const fs = require('fs')
 
-const LogsApiLib = require('../../lib/logapi')
-const logsApiLib = new LogsApiLib()
+const config = require('../../config')
+
 let _this
 
 class LogsApi {
   constructor () {
     _this = this
-    _this.logsApiLib = logsApiLib
+    _this.fs = fs
+    _this.lineReader = lineReader
+    _this.config = config
   }
 
-  /**
-   * @api {post} /logapi Parse and return the log files.
-   * @apiPermission public
-   * @apiName LogApi
-   * @apiGroup Logs
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X POST -d '{ "password": "secretpasas" }' localhost:5000/logapi
-   *
-   * @apiParam {String} password Password (required)
-   *
-   * @apiSuccess {Array}   users           User object
-   * @apiSuccess {ObjectId} users._id       User id
-   * @apiSuccess {String}   user.type       User type (admin or user)
-   * @apiSuccess {String}   users.name      User name
-   * @apiSuccess {String}   users.username  User username
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "user": {
-   *          "_id": "56bd1da600a526986cf65c80"
-   *          "name": "John Doe"
-   *          "username": "johndoe"
-   *       }
-   *     }
-   *
-   * @apiError UnprocessableEntity Missing required parameters
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 422 Unprocessable Entity
-   *     {
-   *       "status": 422,
-   *       "error": "Unprocessable Entity"
-   *     }
-   */
-  async getLogs (ctx) {
+  async getLogs (password) {
     try {
       // console.log('entering getLogs()')
+      _this.password = password
+      // console.log(`password: ${password}`)
 
-      // Get the user-provided password.
-      const password = ctx.request.body.password
-      const result = await _this.logsApiLib.getLogs(password)
-      ctx.body = result
-    } catch (err) {
-      if (err && err.message) {
-        ctx.throw(422, err.message)
+      // Password matches the password set in the config file.
+      if (password === _this.config.logPass) {
+        // Generate the full path and file name for the current log file.
+        const fullPath = _this.generateFileName()
+        // console.log(`fullPath: ${JSON.stringify(fullPath, null, 2)}`)
+
+        // Throw an error if the file does not exist.
+        if (!_this.fs.existsSync(fullPath)) {
+          return {
+            success: false,
+            data: 'file does not exist'
+          }
+        } else {
+          // Read in the data from the log file.
+          const data = await _this.readLines(fullPath)
+          // console.log(`data: ${JSON.stringify(data, null, 2)}`)
+
+          // Filter the logs before passing them to the front end.
+          const filteredData = _this.filterLogs(data)
+
+          return {
+            success: true,
+            data: filteredData
+          }
+        }
+
+        // Password does not match password in config file.
       } else {
-        ctx.throw(500, 'Unhandled error')
+        return {
+          success: false
+        }
       }
+    } catch (err) {
+      console.error('Error in lib/logapi.js/getLogs()')
+      throw err
     }
   }
 
@@ -91,7 +86,7 @@ class LogsApi {
       // else
       return data
     } catch (err) {
-      console.error('Error in logapi/controller.js/filterLogs()')
+      console.error('Error in lib/logapi.js/filterLogs()')
       throw err
     }
   }
@@ -111,18 +106,14 @@ class LogsApi {
       const filename = `koa-${
         _this.config.env
       }-${thisYear}-${thisMonth}-${thisDate}.log`
-
-      console.log(`Attempted to read log filename: ${filename}`)
-
       // console.log(`filename: ${filename}`)
-      const logDir = `${__dirname.toString()}/../../../logs/`
-
+      const logDir = `${__dirname.toString()}/../../logs/`
       const fullPath = `${logDir}${filename}`
       // console.log(`fullPath: ${fullPath}`)
 
       return fullPath
     } catch (err) {
-      console.error('Error in logapi/controller.js/generateFileName()')
+      console.error('Error in lib/logapi.js/generateFileName()')
       throw err
     }
   }
@@ -169,7 +160,7 @@ class LogsApi {
           }
         })
       } catch (err) {
-        console.log('Error in readLines()')
+        console.log('Error in lib/logapi.js/readLines()')
         return reject(err)
       }
     })
