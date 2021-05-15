@@ -5,7 +5,7 @@
   "main": "token-liquidity.js",
   "scripts": {
     "start": "NETWORK=mainnet node token-liquidity.js",
-    "test":"npm run test:all",
+    "test": "npm run test:all",
     "test:integration": "echo Integration tests need to be re-written",
     "test:temp": "mocha -g '#token-liquidity' test/unit",
     "lint": "standard --env mocha --fix",
