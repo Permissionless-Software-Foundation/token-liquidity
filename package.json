@@ -10,13 +10,13 @@
     "test:temp": "mocha -g '#token-liquidity' test/unit",
     "lint": "standard --env mocha --fix",
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
-    "coverage": "export TL_ENV=test && npm run prep-test && nyc report --reporter=text-lcov | coveralls",
-    "coverage:report": "export TL_ENV=test && npm run prep-test && nyc --reporter=html mocha --timeout 15000 --exit test/unit",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "coverage:report": "export TL_ENV=test && nyc --reporter=html mocha --exit --timeout 15000 test/unit/biz-logic/ test/unit/rest-api/ test/e2e/automated/",
     "prep-test": "node util/users/delete-all-test-users.js",
     "test:all": "export TL_ENV=test && NETWORK=testnet  nyc --reporter=text mocha --exit --timeout 15000 test/unit/biz-logic/ test/unit/rest-api/ test/e2e/automated/",
-    "test:unit:lib": "export KOA_ENV=test && mocha --exit --timeout 15000 test/unit/biz-logic/",
-    "test:unit:rest": "export KOA_ENV=test && mocha --exit --timeout 15000 test/unit/rest-api/",
-    "test:e2e:auto": "export KOA_ENV=test && mocha --exit --timeout 15000 test/e2e/automated/"
+    "test:unit:lib": "export TL_ENV=test && mocha --exit --timeout 15000 test/unit/biz-logic/",
+    "test:unit:rest": "export TL_ENV=test && mocha --exit --timeout 15000 test/unit/rest-api/",
+    "test:e2e:auto": "export TL_ENV=test && mocha --exit --timeout 15000 test/e2e/automated/"
   },
   "author": "Chris Troutner <chris.troutner@gmail.com>",
   "license": "MIT",
