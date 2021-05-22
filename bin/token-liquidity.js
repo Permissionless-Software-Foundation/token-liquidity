@@ -17,6 +17,13 @@ const jwtLib = new JwtLib({
   password: process.env.FULLSTACKPASS
 })
 
+// App utility functions library.
+const TLUtils = require('../src/lib/util')
+const tlUtil = new TLUtils()
+
+// Check all environment variables before starting the app.
+tlUtil.checkEnvVars(config)
+
 const SLP = require('../src/lib/slp')
 let slp = new SLP(config)
 
@@ -25,10 +32,6 @@ let bch = new BCH(config)
 
 const { default: PQueue } = require('p-queue')
 const queue = new PQueue({ concurrency: 1 })
-
-// App utility functions library.
-const TLUtils = require('../src/lib/util')
-const tlUtil = new TLUtils()
 
 // const Transactions = require('../src/lib/transactions')
 // const txs = new Transactions()
@@ -228,9 +231,7 @@ async function processingLoop (seenTxs) {
         tokenBalance = result.tokenBalance
       } else {
         wlogger.error(
-          `bchBalance or tokenBalance returned a non-true value: ${
-            result.bchBalance
-          }, ${result.tokenBalance}`
+          `bchBalance or tokenBalance returned a non-true value: ${result.bchBalance}, ${result.tokenBalance}`
         )
       }
       console.log(`BCH: ${bchBalance}, SLP: ${tokenBalance}`)
