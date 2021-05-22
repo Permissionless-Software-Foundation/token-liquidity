@@ -26,7 +26,7 @@
   },
   "repository": "Permissionless-Software-Foundation/token-liquidity",
   "dependencies": {
-    "@psf/bch-js": "4.16.1",
+    "@psf/bch-js": "4.18.4",
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "collect.js": "^4.16.6",
@@ -59,7 +59,6 @@
   "devDependencies": {
     "ajv": "^5.5.2",
     "apidoc": "^0.26.0",
-    "bitbox-mock": "^1.0.3",
     "chai": "^4.3.0",
     "coveralls": "^3.1.0",
     "eslint": "7.19.0",
@@ -73,7 +72,7 @@
     "mocha": "^8.2.1",
     "nock": "^10.0.6",
     "nyc": "^15.1.0",
-    "semantic-release": "^17.4.2",
+    "semantic-release": "^17.4.3",
     "sinon": "^9.2.4",
     "standard": "^16.0.3"
   },
