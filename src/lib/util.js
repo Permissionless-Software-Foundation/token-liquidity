@@ -124,7 +124,7 @@ class TLUtils {
       }
     } catch (err) {
       console.log(
-        `Error in src/lib/util.js/checkEnvVars(). Shutting down. Reason: \n${err.message}`
+        `Error in src/lib/util.js/checkEnvVars().\nDid you create a .env file?\nShutting down. Reason: \n${err.message}`
       )
       process.exit(1)
     }

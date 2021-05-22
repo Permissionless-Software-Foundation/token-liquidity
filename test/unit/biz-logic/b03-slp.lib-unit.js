@@ -57,10 +57,11 @@ describe('#slp-lib', () => {
     it('should get token balance', async () => {
       sandbox.stub(uut.bchjs.SLP.Utils, 'balancesForAddress').resolves([
         {
+          balanceString: '100000000',
+          slpAddress: 'simpleledger:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqvd9pdcy2',
           tokenId:
-            '155784a206873c98acc09e8dabcccf6abf13c4c14d8662190534138a16bb93ce',
-          balance: 11999.16572854,
-          slpAddress: 'slptest:qpt74e74f75w6s7cd8r9p5fumvdhqf995g69udvd5n',
+            'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
+          balance: 100000000,
           decimalCount: 8
         }
       ])
@@ -333,33 +334,6 @@ describe('#slp-lib', () => {
         // console.log(`err.message: ${err.message}`)
         assert.include(err.message, 'qty must be a positive number.')
       }
-    })
-
-    it('should generate a transaction hex for testnet', async () => {
-      // Mock out down-stream dependencies for a unit test.
-      sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
-      // sandbox.stub(slp.bchjs.Blockbook, 'utxo').resolves(slpMockData.utxos)
-      sandbox
-        .stub(uut.bchjs.Electrumx, 'utxo')
-        .resolves(slpMockDataCopy.fulcrumUtxos)
-      sandbox
-        .stub(uut.bchjs.SLP.Utils, 'tokenUtxoDetails')
-        .resolves(slpMockDataCopy.tokenUtxos)
-      sandbox
-        .stub(uut.bch, 'findBiggestUtxo')
-        .resolves(slpMockDataCopy.utxos[0])
-      sandbox
-        .stub(uut.bchjs.Blockchain, 'getTxOut')
-        .resolves(slpMockDataCopy.validUtxo)
-
-      const addr = 'bchtest:qpwa35xq0q0cnmdu0rwzkct369hddzsqpsme94qqh2'
-      const qty = 1
-
-      const result = await uut.createTokenTx(addr, qty, 245)
-      // console.log(`result: ${JSON.stringify(result, null, 2)}`)
-
-      assert.isString(result)
-      assert.equal(result.indexOf('0200'), 0, 'First part of string matches.')
     })
 
     it('should generate a transaction hex for mainnet', async () => {

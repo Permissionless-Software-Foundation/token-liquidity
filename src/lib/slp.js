@@ -58,7 +58,7 @@ class SLP {
       const tokenInfo = result.find(
         token => token.tokenId === this.config.SLP_TOKEN_ID
       )
-      console.log(`tokenInfo: ${JSON.stringify(tokenInfo, null, 2)}`)
+      // console.log(`tokenInfo: ${JSON.stringify(tokenInfo, null, 2)}`)
 
       return parseFloat(tokenInfo.balance)
     } catch (err) {
@@ -162,7 +162,9 @@ class SLP {
       const keyPairBCH = this.bchjs.HDNode.toKeyPair(changeBCH)
 
       const cashAddressBCH = this.bchjs.HDNode.toCashAddress(changeBCH)
-      // console.log(`cashAddressBCH: ${JSON.stringify(cashAddressBCH, null, 2)}`)
+      // console.log(
+      //   `145 cashAddressBCH: ${JSON.stringify(cashAddressBCH, null, 2)}`
+      // )
 
       // Utxos from address derivation 145
       // const utxosBCH = await this.bchjs.Blockbook.utxo(cashAddressBCH)
@@ -199,10 +201,11 @@ class SLP {
       // get the cash address
       const cashAddress = this.bchjs.HDNode.toCashAddress(change)
       const slpAddress = this.bchjs.HDNode.toSLPAddress(change)
-      // console.log(`cashAddress: ${JSON.stringify(cashAddress, null, 2)}`)
+      // console.log(
+      //   `${path} cashAddress: ${JSON.stringify(cashAddress, null, 2)}`
+      // )
 
       // Get UTXOs held by this address. Derivation 245
-      // const utxos = await this.bchjs.Blockbook.utxo(cashAddress)
       const fulcrumResult2 = await this.bchjs.Electrumx.utxo(cashAddress)
       const utxos = fulcrumResult2.utxos
       // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)

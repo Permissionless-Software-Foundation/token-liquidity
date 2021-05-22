@@ -24,6 +24,14 @@ const tlUtil = new TLUtils()
 // Check all environment variables before starting the app.
 tlUtil.checkEnvVars(config)
 
+// Ensure the user created a wallet-main.json file.
+try {
+  tlUtil.openWallet()
+} catch (err) {
+  console.error('No wallet file found. Did you create a wallet-main.json file?')
+  process.exit(1)
+}
+
 const SLP = require('../src/lib/slp')
 const BCH = require('../src/lib/bch')
 let slp, bch
