@@ -1,0 +1,13 @@
+# FullStack.cash login information.
+FULLSTACKLOGIN=demo@demo.com
+FULLSTACKPASS=demo
+NETWORK=mainnet
+REST_URL=https://bchn.fullstack.cash/v4/
+
+
+# Set wallet variables
+BCH145ADDR=bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65
+SLP145ADDR=simpleledger:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqvd9pdcy2
+BCH245ADDR=bitcoincash:qptsevau6xjfem2sx4ef3vk575ucdud7wq0pekwn3a
+SLP245ADDR=simpleledger:qptsevau6xjfem2sx4ef3vk575ucdud7wqr6jdmn0r
+SLP_TOKEN_ID=c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469
