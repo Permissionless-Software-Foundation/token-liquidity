@@ -25,10 +25,10 @@ const tlUtil = new TLUtils()
 tlUtil.checkEnvVars(config)
 
 const SLP = require('../src/lib/slp')
-let slp = new SLP(config)
-
 const BCH = require('../src/lib/bch')
-let bch = new BCH(config)
+let slp, bch
+// let slp = new SLP(config)
+// let bch = new BCH(config)
 
 const { default: PQueue } = require('p-queue')
 const queue = new PQueue({ concurrency: 1 })
@@ -44,16 +44,6 @@ lib.queue = queue
 
 // Winston logger
 const wlogger = require('../src/lib/wlogger')
-
-// Used for debugging.
-const util = require('util')
-util.inspect.defaultOptions = {
-  showHidden: true,
-  colors: true
-}
-
-// const BCH_ADDR1 = config.BCH_ADDR
-// const TOKEN_ID = config.TOKEN_ID
 
 const FIVE_MINUTES = 60000 * 5
 const CONSOLIDATE_INTERVAL = 60000 * 100

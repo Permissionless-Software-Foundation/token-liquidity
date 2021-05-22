@@ -45,7 +45,7 @@ class SLP {
       // console.log(`addr: ${addr}`)
 
       const result = await this.bchjs.SLP.Utils.balancesForAddress(
-        this.config.SLP_ADDR
+        this.config.SLP245ADDR
       )
       wlogger.debug('token balance: ', result)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
@@ -58,7 +58,7 @@ class SLP {
       const tokenInfo = result.find(
         token => token.tokenId === this.config.SLP_TOKEN_ID
       )
-      // console.log(`tokenInfo: ${JSON.stringify(tokenInfo, null, 2)}`)
+      console.log(`tokenInfo: ${JSON.stringify(tokenInfo, null, 2)}`)
 
       return parseFloat(tokenInfo.balance)
     } catch (err) {
