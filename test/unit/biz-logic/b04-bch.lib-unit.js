@@ -8,12 +8,12 @@ const assert = require('chai').assert
 const sinon = require('sinon')
 const cloneDeep = require('lodash.clonedeep')
 
-const BCH = require('../../src/lib/bch')
+const BCH = require('../../../src/lib/bch')
 
-const bchMockDataLib = require('./mocks/bch.mock')
-const mockWallet = require('./mocks/testwallet.json')
+const bchMockDataLib = require('../mocks/bch.mock')
+const mockWallet = require('../mocks/testwallet.json')
 
-const config = require('../../config')
+const config = require('../../../config')
 
 // If not specified, default to unit test.
 if (!process.env.TL_ENV) process.env.TL_ENV = 'test'
