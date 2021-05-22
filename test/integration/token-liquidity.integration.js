@@ -32,14 +32,16 @@ describe('#token-liquidity.js', () => {
       console.log(`newTxids: ${JSON.stringify(newTxids, null, 2)}`)
     })
   })
+
   describe('#getPrice', () => {
     it('should get the current spot price of BCH/USD ', async () => {
       const currentPrice = await tlLib.getPrice()
       console.log(`currentPrice: ${JSON.stringify(currentPrice, null, 2)}`)
 
-      assert.isString(currentPrice)
+      assert.isNumber(currentPrice)
     })
   })
+
   describe('#getBlockchainBalances', () => {
     it('should get the current blockchain balances', async () => {
       const balance = await tlLib.getBlockchainBalances()
@@ -65,7 +67,9 @@ describe('#token-liquidity.js', () => {
     it('should Returns the "spot price"', async () => {
       const bchBalance = 1
       const effectiveBalance = await tlLib.getEffectiveTokenBalance(bchBalance)
-      console.log(`effectiveBalance: ${JSON.stringify(effectiveBalance, null, 2)}`)
+      console.log(
+        `effectiveBalance: ${JSON.stringify(effectiveBalance, null, 2)}`
+      )
 
       assert.isNumber(effectiveBalance)
     })

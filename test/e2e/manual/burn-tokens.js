@@ -1,6 +1,8 @@
 /*
   Generates and broadcasts a BCH transaction which includes an OP_RETURN
   including text data in the transaction.
+
+  This script can be used to generate the 'BURN' OP_RETURN command.
 */
 
 // Set NETWORK to either testnet or mainnet
@@ -19,7 +21,7 @@ const SATS_TO_SEND = 100000
 // Customize the message you want to send
 const MESSAGE = 'BURN abcdef'
 
-const BCHJS = require('@chris.troutner/bch-js')
+const BCHJS = require('@psf/bch-js')
 let bchjs
 if (NETWORK === 'mainnet') bchjs = new BCHJS({ restURL: MAINNET_API })
 else bchjs = new BCHJS({ restURL: TESTNET_API })
@@ -42,7 +44,9 @@ async function writeOpReturn (msg, wif) {
 
     // instance of transaction builder
     let transactionBuilder
-    if (NETWORK === 'mainnet') { transactionBuilder = new bchjs.TransactionBuilder() } else transactionBuilder = new bchjs.TransactionBuilder('testnet')
+    if (NETWORK === 'mainnet') {
+      transactionBuilder = new bchjs.TransactionBuilder()
+    } else transactionBuilder = new bchjs.TransactionBuilder('testnet')
 
     const originalAmount = utxo.satoshis
     const vout = utxo.vout
@@ -58,7 +62,11 @@ async function writeOpReturn (msg, wif) {
     // It's the original amount - 1 sat/byte for tx size
     const remainder = originalAmount - SATS_TO_SEND - fee
 
-    if (remainder < 546) throw new Error('Not enough remainder to justify change. Create bigger UTXO.')
+    if (remainder < 546) {
+      throw new Error(
+        'Not enough remainder to justify change. Create bigger UTXO.'
+      )
+    }
 
     // BEGIN - Construction of OP_RETURN transaction.
 
@@ -105,7 +113,11 @@ async function writeOpReturn (msg, wif) {
     console.log(`Transaction ID: ${txidStr}`)
     // console.log(`https://memo.cash/post/${txidStr}`)
 
-    if (NETWORK === 'mainnet') { console.log(`https://explorer.bitcoin.com/bch/tx/${txidStr}`) } else { console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`) }
+    if (NETWORK === 'mainnet') {
+      console.log(`https://explorer.bitcoin.com/bch/tx/${txidStr}`)
+    } else {
+      console.log(`https://explorer.bitcoin.com/tbch/tx/${txidStr}`)
+    }
   } catch (err) {
     console.log('Error in writeOpReturn(): ', err)
   }
@@ -124,7 +136,10 @@ async function findBiggestUtxo (utxos) {
 
     if (thisUtxo.satoshis > largestAmount) {
       // Ask the full node to validate the UTXO. Skip if invalid.
-      const isValid = await bchjs.Blockchain.getTxOut(thisUtxo.txid, thisUtxo.vout)
+      const isValid = await bchjs.Blockchain.getTxOut(
+        thisUtxo.txid,
+        thisUtxo.vout
+      )
       if (isValid === null) continue
 
       largestAmount = thisUtxo.satoshis
