@@ -4,7 +4,7 @@
   "description": "BCH SLP Token Liquidity Web App for the Permissionless Software Foundation",
   "main": "token-liquidity.js",
   "scripts": {
-    "start": "NETWORK=mainnet node token-liquidity.js",
+    "start": "env-cmd node token-liquidity.js",
     "start:temp": "cross-env ./token-liquidity.sh && npm start",
     "test": "npm run test:all",
     "test:integration": "echo Integration tests need to be re-written",
@@ -31,6 +31,7 @@
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "collect.js": "^4.16.6",
+    "env-cmd": "^10.1.0",
     "glob": "^7.1.6",
     "got": "^9.5.1",
     "jsonwebtoken": "^8.5.1",
