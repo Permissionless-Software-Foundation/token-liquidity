@@ -27,7 +27,8 @@ describe('#bch.js', () => {
   describe('#recievedBch', () => {
     it('should display the amount of sats received', async () => {
       const addr = 'bitcoincash:qzdq6jzvyzhyuj639l72rmqfzu3vd7eux5nhdzndwm'
-      const txid = 'e2f2467b0cbbb9eae2fd409342e2657ba1ab58d3ac2d256522596adb946cd958'
+      const txid =
+        'e2f2467b0cbbb9eae2fd409342e2657ba1ab58d3ac2d256522596adb946cd958'
 
       const result = await bch.recievedBch(txid, addr)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
@@ -55,18 +56,33 @@ describe('#bch.js', () => {
       const result = await bch.consolidateUtxos()
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
 
-      assert.equal(result, undefined)
+      assert.equal(result, false)
     })
   })
 
   describe('#readOpReturn', () => {
     it('should return isValid=false for non-OP_RETURN tx', async () => {
-      const txid = '07200217e2fd235b96030e3b775678871184084bb27d5d9c15957722c29c8709'
+      const txid =
+        '07200217e2fd235b96030e3b775678871184084bb27d5d9c15957722c29c8709'
 
       const result = await bch.readOpReturn(txid)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
 
       assert.equal(result.isValid, false)
+    })
+  })
+
+  describe('#send-bch', () => {
+    it('should send bch', async () => {
+      const obj = {
+        recvAddr: config.BCH_ADDR,
+        satoshisToSend: 1000
+      }
+
+      const hex = await bch.createBchTx(obj)
+      // console.log(hex)
+
+      assert.isString(hex)
     })
   })
 })

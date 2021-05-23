@@ -17,18 +17,29 @@ const jwtLib = new JwtLib({
   password: process.env.FULLSTACKPASS
 })
 
-const SLP = require('../src/lib/slp')
-let slp = new SLP(config)
-
-const BCH = require('../src/lib/bch')
-let bch = new BCH(config)
-
-const { default: PQueue } = require('p-queue')
-const queue = new PQueue({ concurrency: 1 })
-
 // App utility functions library.
 const TLUtils = require('../src/lib/util')
 const tlUtil = new TLUtils()
+
+// Check all environment variables before starting the app.
+tlUtil.checkEnvVars(config)
+
+// Ensure the user created a wallet-main.json file.
+try {
+  tlUtil.openWallet()
+} catch (err) {
+  console.error('No wallet file found. Did you create a wallet-main.json file?')
+  process.exit(1)
+}
+
+const SLP = require('../src/lib/slp')
+const BCH = require('../src/lib/bch')
+let slp, bch
+// let slp = new SLP(config)
+// let bch = new BCH(config)
+
+const { default: PQueue } = require('p-queue')
+const queue = new PQueue({ concurrency: 1 })
 
 // const Transactions = require('../src/lib/transactions')
 // const txs = new Transactions()
@@ -41,16 +52,6 @@ lib.queue = queue
 
 // Winston logger
 const wlogger = require('../src/lib/wlogger')
-
-// Used for debugging.
-const util = require('util')
-util.inspect.defaultOptions = {
-  showHidden: true,
-  colors: true
-}
-
-// const BCH_ADDR1 = config.BCH_ADDR
-// const TOKEN_ID = config.TOKEN_ID
 
 const FIVE_MINUTES = 60000 * 5
 const CONSOLIDATE_INTERVAL = 60000 * 100
@@ -228,9 +229,7 @@ async function processingLoop (seenTxs) {
         tokenBalance = result.tokenBalance
       } else {
         wlogger.error(
-          `bchBalance or tokenBalance returned a non-true value: ${
-            result.bchBalance
-          }, ${result.tokenBalance}`
+          `bchBalance or tokenBalance returned a non-true value: ${result.bchBalance}, ${result.tokenBalance}`
         )
       }
       console.log(`BCH: ${bchBalance}, SLP: ${tokenBalance}`)

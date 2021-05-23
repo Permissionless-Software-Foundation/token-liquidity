@@ -70,6 +70,8 @@ state.json
 system-user-*.json
 
 start-token-liquidity.sh
+token-liquidity.sh
+.env
 
 !README.md
 docs

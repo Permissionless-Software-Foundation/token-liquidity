@@ -30,12 +30,7 @@ class SLP {
     this.config = config
     // console.log('SLP config: ', this.config)
 
-    // Determine if this is a testnet wallet or a mainnet wallet.
-    if (this.config.NETWORK === 'testnet') {
-      this.bchjs = new config.BCHLIB({ restURL: config.TESTNET_REST })
-    } else {
-      this.bchjs = new config.BCHLIB({ restURL: config.MAINNET_REST })
-    }
+    this.bchjs = new config.BCHLIB({ restURL: config.MAINNET_REST })
 
     this.bch = new BCH(config)
     this.tlUtils = tlUtils
@@ -50,7 +45,7 @@ class SLP {
       // console.log(`addr: ${addr}`)
 
       const result = await this.bchjs.SLP.Utils.balancesForAddress(
-        this.config.SLP_ADDR
+        this.config.SLP245ADDR
       )
       wlogger.debug('token balance: ', result)
       // console.log(`result: ${JSON.stringify(result, null, 2)}`)
@@ -167,7 +162,9 @@ class SLP {
       const keyPairBCH = this.bchjs.HDNode.toKeyPair(changeBCH)
 
       const cashAddressBCH = this.bchjs.HDNode.toCashAddress(changeBCH)
-      // console.log(`cashAddressBCH: ${JSON.stringify(cashAddressBCH, null, 2)}`)
+      // console.log(
+      //   `145 cashAddressBCH: ${JSON.stringify(cashAddressBCH, null, 2)}`
+      // )
 
       // Utxos from address derivation 145
       // const utxosBCH = await this.bchjs.Blockbook.utxo(cashAddressBCH)
@@ -204,10 +201,11 @@ class SLP {
       // get the cash address
       const cashAddress = this.bchjs.HDNode.toCashAddress(change)
       const slpAddress = this.bchjs.HDNode.toSLPAddress(change)
-      // console.log(`cashAddress: ${JSON.stringify(cashAddress, null, 2)}`)
+      // console.log(
+      //   `${path} cashAddress: ${JSON.stringify(cashAddress, null, 2)}`
+      // )
 
       // Get UTXOs held by this address. Derivation 245
-      // const utxos = await this.bchjs.Blockbook.utxo(cashAddress)
       const fulcrumResult2 = await this.bchjs.Electrumx.utxo(cashAddress)
       const utxos = fulcrumResult2.utxos
       // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)
@@ -296,10 +294,7 @@ class SLP {
 
       // add each token UTXO as an input.
       for (let i = 0; i < tokenUtxos.length; i++) {
-        transactionBuilder.addInput(
-          tokenUtxos[i].tx_hash,
-          tokenUtxos[i].tx_pos
-        )
+        transactionBuilder.addInput(tokenUtxos[i].tx_hash, tokenUtxos[i].tx_pos)
       }
 
       // TODO: Create fee calculator like slpjs
@@ -543,10 +538,7 @@ class SLP {
 
       // add each token UTXO as an input.
       for (let i = 0; i < tokenUtxos.length; i++) {
-        transactionBuilder.addInput(
-          tokenUtxos[i].tx_hash,
-          tokenUtxos[i].tx_pos
-        )
+        transactionBuilder.addInput(tokenUtxos[i].tx_hash, tokenUtxos[i].tx_pos)
       }
 
       // TODO: Create fee calculator like slpjs
@@ -638,9 +630,7 @@ class SLP {
   // Broadcast the SLP transaction to the BCH network.
   async broadcastTokenTx (hex) {
     try {
-      const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([
-        hex
-      ])
+      const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([hex])
       wlogger.info(`Transaction ID: ${txidStr}`)
 
       return txidStr

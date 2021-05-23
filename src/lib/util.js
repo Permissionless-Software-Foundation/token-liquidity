@@ -90,7 +90,44 @@ class TLUtils {
   }
 
   sleep (ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  // Check that all the environment variables are set and 'make sense' before
+  // allowing the app to start.
+  checkEnvVars (configObj) {
+    try {
+      console.log(`config: ${JSON.stringify(configObj, null, 2)}`)
+
+      // Check email settings.
+      if (config.emailServer === 'mail.someserver.com') {
+        console.warn(
+          '\nWarning: Email server variables not set! Email notifications will not be sent.\n'
+        )
+      }
+
+      // Check required settings.
+      if (!config.BCH145ADDR) {
+        throw new Error('BCH 145 derivation address not set!')
+      }
+      if (!config.SLP145ADDR) {
+        throw new Error('SLP 145 derivation address not set!')
+      }
+      if (!config.BCH245ADDR) {
+        throw new Error('BCH 245 derivation address not set!')
+      }
+      if (!config.SLP245ADDR) {
+        throw new Error('SLP 245 derivation address not set!')
+      }
+      if (!config.SLP_TOKEN_ID) {
+        throw new Error('SLP Token ID not set!')
+      }
+    } catch (err) {
+      console.log(
+        `Error in src/lib/util.js/checkEnvVars().\nDid you create a .env file?\nShutting down. Reason: \n${err.message}`
+      )
+      process.exit(1)
+    }
   }
 }
 
