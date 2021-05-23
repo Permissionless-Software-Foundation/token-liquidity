@@ -101,7 +101,7 @@ class TokenLiquidity {
       // console.log(`confs: ${JSON.stringify(confs, null, 2)}`)
 
       // Filter out any zero conf transactions.
-      const newTxs = confs.filter((x) => x.confirmations > 0)
+      const newTxs = confs.filter(x => x.confirmations > 0)
       // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
 
       return newTxs
@@ -167,6 +167,11 @@ class TokenLiquidity {
         wlogger.info(
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
+
+        // Refuse to send less than dust.
+        if (retObj.tokensOut < 0.000006) {
+          throw new Error('Output amount is less than dust. Refusing to send.')
+        }
 
         // Update the balances
         wlogger.info(`New BCH balance: ${retObj.bch2}`)
@@ -301,7 +306,7 @@ class TokenLiquidity {
       if (!obj) throw new Error('obj is undefined')
 
       const result = await pRetry(() => _this.processTx(obj), {
-        onFailedAttempt: async (error) => {
+        onFailedAttempt: async error => {
           //   failed attempt.
           console.log(' ')
           wlogger.info(
