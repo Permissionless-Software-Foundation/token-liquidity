@@ -21,7 +21,10 @@ configOut = {
   TOKENS_QTY_ORIGINAL: 50000,
   BCH_QTY_ORIGINAL: 250,
 
-  // Email server for notifications.
+  // Email notifications settings.
+  useEmailAlerts: process.env.USE_EMAIL_ALERTS
+    ? Number.parseInt(process.env.USE_EMAIL_ALERTS)
+    : 0,
   emailServer: process.env.EMAILSERVER
     ? process.env.EMAILSERVER
     : 'mail.someserver.com',
@@ -31,6 +34,9 @@ configOut = {
   emailPassword: process.env.EMAILPASS
     ? process.env.EMAILPASS
     : 'emailpassword',
+  emailRecievers: process.env.EMAILRECIEVERS
+    ? process.env.EMAILRECIEVERS.split(',')
+    : ['test@test.com'],
 
   // Required BCH variables.
   BCH_ADDR: process.env.BCH145ADDR, // TODO: Phase out this var name.

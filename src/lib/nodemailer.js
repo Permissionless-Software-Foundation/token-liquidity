@@ -1,5 +1,6 @@
 /*
   A library for controlling the sending of email.
+  This library wraps the nodemailer npm package.
 */
 
 'use strict'
@@ -27,8 +28,8 @@ class NodeMailer {
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: _this.config.emailUser, // generated ethereal user
-        pass: _this.config.emailPassword // generated ethereal password
+        user: _this.config.emailUser, // email username
+        pass: _this.config.emailPassword // email password
       }
     })
     return transporter

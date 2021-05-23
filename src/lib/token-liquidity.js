@@ -26,6 +26,9 @@ const slp = new SLP(config)
 const Transactions = require('./transactions')
 const txs = new Transactions()
 
+// Email contact library.
+const Email = require('./contact')
+
 // const bchLib = require('./send-bch')
 
 // Winston logger
@@ -56,6 +59,7 @@ class TokenLiquidity {
     this.txs = txs
     this.tlUtil = tlUtil
     this.got = got
+    this.email = new Email()
   }
 
   async getObjProcessTx () {
@@ -101,7 +105,7 @@ class TokenLiquidity {
       // console.log(`confs: ${JSON.stringify(confs, null, 2)}`)
 
       // Filter out any zero conf transactions.
-      const newTxs = confs.filter((x) => x.confirmations > 0)
+      const newTxs = confs.filter(x => x.confirmations > 0)
       // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
 
       return newTxs
@@ -167,6 +171,11 @@ class TokenLiquidity {
         wlogger.info(
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
+
+        // Refuse to send less than dust.
+        if (retObj.tokensOut < 0.000006) {
+          throw new Error('Output amount is less than dust. Refusing to send.')
+        }
 
         // Update the balances
         wlogger.info(`New BCH balance: ${retObj.bch2}`)
@@ -300,8 +309,9 @@ class TokenLiquidity {
 
       if (!obj) throw new Error('obj is undefined')
 
+      const numOfRetries = 5
       const result = await pRetry(() => _this.processTx(obj), {
-        onFailedAttempt: async (error) => {
+        onFailedAttempt: async error => {
           //   failed attempt.
           console.log(' ')
           wlogger.info(
@@ -321,9 +331,18 @@ class TokenLiquidity {
             throw new pRetry.AbortError('Dust or non-PSF token')
           }
 
+          // If the number of retries has been exhausted, send out an email alert.
+          if (!error.retriesLeft && config.useEmailAlerts) {
+            const emailObj = {
+              callerMsg: 'lib/slp.js/handleMoveTokenError()',
+              errorObj: error
+            }
+            await _this.email.sendTLEmailAlert(emailObj)
+          }
+
           await this.tlUtil.sleep(60000 * 4) // Sleep for 4 minutes
         },
-        retries: 5 // Retry 5 times
+        retries: numOfRetries // Retry 5 times
       })
 
       // Reset the global object to an empty object.

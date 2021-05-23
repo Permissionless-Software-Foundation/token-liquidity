@@ -11,7 +11,10 @@
 
 const pRetry = require('p-retry')
 
-// const config = require('../../config')
+const config = require('../../config')
+
+// Email contact library.
+const Email = require('./contact')
 
 const TLUtils = require('./util')
 const tlUtils = new TLUtils()
@@ -34,6 +37,7 @@ class SLP {
 
     this.bch = new BCH(config)
     this.tlUtils = tlUtils
+    this.email = new Email()
 
     _this = this
   }
@@ -685,6 +689,15 @@ class SLP {
       wlogger.error(errorMsg)
 
       if (process.env.TL_ENV !== 'test') {
+        // If the number of retries has been exhausted, send out an email alert.
+        if (!error.retriesLeft && config.useEmailAlerts) {
+          const emailObj = {
+            callerMsg: 'lib/slp.js/handleMoveTokenError()',
+            errorObj: error
+          }
+          await _this.email.sendTLEmailAlert(emailObj)
+        }
+
         await _this.tlUtils.sleep(60000 * 4)
       } // Sleep for 4 minutes
     } catch (err) {
