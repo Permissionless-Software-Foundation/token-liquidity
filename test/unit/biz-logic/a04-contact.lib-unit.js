@@ -5,7 +5,7 @@ const ContactLib = require('../../../src/lib/contact')
 let uut
 let sandbox
 
-describe('Contact', () => {
+describe('#contact', () => {
   beforeEach(() => {
     uut = new ContactLib()
 
@@ -51,7 +51,10 @@ describe('Contact', () => {
         await uut.sendEmail(data)
         assert(false, 'Unexpected result')
       } catch (err) {
-        assert.include(err.message, "Property 'emailList' must be a array of emails!")
+        assert.include(
+          err.message,
+          "Property 'emailList' must be a array of emails!"
+        )
       }
     })
 
@@ -67,7 +70,10 @@ describe('Contact', () => {
         await uut.sendEmail(data)
         assert(false, 'Unexpected result')
       } catch (err) {
-        assert.include(err.message, "Property 'emailList' must be a array of emails!")
+        assert.include(
+          err.message,
+          "Property 'emailList' must be a array of emails!"
+        )
       }
     })
 
@@ -89,7 +95,9 @@ describe('Contact', () => {
     it('should catch and throw nodemailer lib error', async () => {
       try {
         // Force an error with the database.
-        sandbox.stub(uut.nodemailer, 'sendEmail').throws(new Error('test error'))
+        sandbox
+          .stub(uut.nodemailer, 'sendEmail')
+          .throws(new Error('test error'))
 
         const data = {
           formMessage: 'test msg',
@@ -116,6 +124,36 @@ describe('Contact', () => {
       } catch (err) {
         assert(false, 'Unexpected result')
       }
+    })
+  })
+
+  describe('#sendTLEmailAlert', () => {
+    it('should exit if config.useEmailAlerts is 0', async () => {
+      // Force config setting.
+      uut.config.useEmailAlerts = 0
+
+      const result = await uut.sendTLEmailAlert({})
+
+      assert.equal(result, false)
+    })
+
+    // This test is really just to get code coverage. Functionality is tested
+    // in the integration test.
+    it('should send an email alert', async () => {
+      // Force config setting.
+      uut.config.useEmailAlerts = 1
+
+      // Stub response from sendEmail() function.
+      sandbox.stub(uut, 'sendEmail').resolves(true)
+
+      const emailObj = {
+        callerMsg: 'lib/slp.js/handleMoveTokenError()',
+        errorObj: new Error('test error message')
+      }
+      const result = await uut.sendTLEmailAlert(emailObj)
+      // console.log('result: ', result)
+
+      assert.equal(result, true)
     })
   })
 })

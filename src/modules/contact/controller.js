@@ -3,7 +3,7 @@
 */
 
 /* eslint-disable no-useless-escape */
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 const ContactLib = require('../../lib/contact')
 const contactLib = new ContactLib()

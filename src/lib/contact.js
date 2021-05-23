@@ -3,7 +3,7 @@
 */
 
 /* eslint-disable no-useless-escape */
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
 const config = require('../../config')
 
@@ -31,7 +31,7 @@ class ContactLib {
         throw new Error("Property 'formMessage' must be a string!")
       }
 
-      // If an email list exists, the email will be sended to that list
+      // If an email list exists, the email will be sent to that list
       // otherwhise will be sended by default to the variable "_this.config.emailUser"
       let _to = [_this.config.emailUser]
 
@@ -49,13 +49,57 @@ class ContactLib {
 
       console.log(`Trying send message to : ${_to}`)
 
-      emailObj.subject = 'Someone wants contact with you.'
+      // emailObj.subject = 'Someone wants contact with you.'
       emailObj.to = _to
 
       const result = await _this.nodemailer.sendEmail(emailObj)
       return result
     } catch (err) {
       wlogger.error('Error in lib/contact.js/sendEmail()')
+      throw err
+    }
+  }
+
+  // Send an email alert about an error that can't be handled by the Token
+  // Liquidity app.
+  // The emailObj input should have the following properties:
+  // - errorObj: Required. A Error object containing the error message and stack trace.
+  // - callerMsg: Optional. Any custom message from the function calling this method.
+  async sendTLEmailAlert (emailObj) {
+    try {
+      // Exit if the server is not set up to send email alerts.
+      if (!this.config.useEmailAlerts) return false
+
+      // console.log(`emailObj: ${JSON.stringify(emailObj, null, 2)}`)
+
+      const now = new Date()
+
+      // Generate html message.
+      const htmlMsg = `
+      <body>
+        <p>
+          <b>Date: </b>${now.toLocaleString()} (UTC: ${now.toISOString()})
+        </p>
+        <p>
+          <b>Message from calling function:</b> ${emailObj.callerMsg}
+        </p>
+        <p>
+          <b>Error object:</b> ${emailObj.errorObj.toString()}
+        </p>
+      </body>
+      `
+
+      // Hydrate the email object.
+      emailObj.email = this.config.emailUser
+      emailObj.formMessage = htmlMsg
+      emailObj.emailList = this.config.emailRecievers
+      emailObj.subject = 'Alert from Token Liquidity app'
+
+      const result = await this.sendEmail(emailObj)
+
+      return result
+    } catch (err) {
+      wlogger.error('Error in lib/contact.js/sendTLEmailAlert()')
       throw err
     }
   }
