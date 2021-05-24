@@ -172,11 +172,6 @@ class TokenLiquidity {
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
 
-        // Refuse to send less than dust.
-        if (retObj.tokensOut < 0.000006) {
-          throw new Error('Output amount is less than dust. Refusing to send.')
-        }
-
         // Update the balances
         wlogger.info(`New BCH balance: ${retObj.bch2}`)
         wlogger.info(`New token balance: ${retObj.token2}`)
@@ -329,6 +324,11 @@ class TokenLiquidity {
           // Abort for non-PSF tokens
           if (error.message.indexOf('Dust recieved.') > -1) {
             throw new pRetry.AbortError('Dust or non-PSF token')
+          }
+
+          // Abort for dust
+          if (error.message.includes('code 64')) {
+            throw new pRetry.AbortError('Exchange aborted because of dust.')
           }
 
           // If the number of retries has been exhausted, send out an email alert.
