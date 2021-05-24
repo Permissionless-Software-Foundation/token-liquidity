@@ -135,8 +135,8 @@ async function startTokenLiquidity () {
   setInterval(async function () {
     wlogger.info('Updating FullStack.cash JWT token')
     await getJwt()
-    bch = new BCH() // Reinitialize bchjs with the JWT token.
-    slp = new SLP() // Reinitialize bchjs with the JWT token.
+    bch = new BCH(config) // Reinitialize bchjs with the JWT token.
+    slp = new SLP(config) // Reinitialize bchjs with the JWT token.
   }, 60000 * 60) // Once every hour
 
   // Periodically write out status information to the log file. This ensures
