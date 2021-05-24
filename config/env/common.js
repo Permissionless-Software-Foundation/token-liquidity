@@ -37,6 +37,9 @@ configOut = {
   emailRecievers: process.env.EMAILRECIEVERS
     ? process.env.EMAILRECIEVERS.split(',')
     : ['test@test.com'],
+  emailMachineName: process.env.EMAIL_MACHINE
+    ? process.env.EMAIL_MACHINE
+    : 'Generic Token Liquidity App',
 
   // Required BCH variables.
   BCH_ADDR: process.env.BCH145ADDR, // TODO: Phase out this var name.
