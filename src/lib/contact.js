@@ -93,7 +93,8 @@ class ContactLib {
       emailObj.email = this.config.emailUser
       emailObj.formMessage = htmlMsg
       emailObj.emailList = this.config.emailRecievers
-      emailObj.subject = 'Alert from Token Liquidity app'
+      // emailObj.subject = 'Alert from Token Liquidity app'
+      emailObj.subject = this.config.emailMachineName
 
       const result = await this.sendEmail(emailObj)
 

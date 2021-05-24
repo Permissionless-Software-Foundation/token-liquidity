@@ -60,6 +60,7 @@ class TokenLiquidity {
     this.tlUtil = tlUtil
     this.got = got
     this.email = new Email()
+    this.config = config
   }
 
   async getObjProcessTx () {
@@ -171,11 +172,6 @@ class TokenLiquidity {
         wlogger.info(
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
-
-        // Refuse to send less than dust.
-        if (retObj.tokensOut < 0.000006) {
-          throw new Error('Output amount is less than dust. Refusing to send.')
-        }
 
         // Update the balances
         wlogger.info(`New BCH balance: ${retObj.bch2}`)
@@ -329,6 +325,11 @@ class TokenLiquidity {
           // Abort for non-PSF tokens
           if (error.message.indexOf('Dust recieved.') > -1) {
             throw new pRetry.AbortError('Dust or non-PSF token')
+          }
+
+          // Abort for dust
+          if (error.message.includes('code 64')) {
+            throw new pRetry.AbortError('Exchange aborted because of dust.')
           }
 
           // If the number of retries has been exhausted, send out an email alert.
@@ -594,34 +595,31 @@ class TokenLiquidity {
     try {
       let usdPerBCH
 
-      try {
-        // const rawRate = await _this.got(
-        //   'https://api.coinbase.com/v2/exchange-rates?currency=BCH'
-        // )
-        //
-        // const jsonRate = JSON.parse(rawRate.body)
-        // // console.log(`jsonRate: ${JSON.stringify(jsonRate, null, 2)}`);
-        //
-        // usdPerBCH = jsonRate.data.rates.USD
-        //
-        // wlogger.debug(`USD/BCH exchange rate: $${usdPerBCH}`)
+      // console.log('Current blockchain: ', this.config.blockchain)
 
-        usdPerBCH = await _this.getCoinbasePrice()
-      } catch (err) {
+      if (this.config.blockchain === 'ecash') {
+        usdPerBCH = await _this.bch.getEcashPrice()
+      } else {
+        // Try to get the current spot price of BCH from Coinbase, but fallback
+        // to Coinex if the Coinbase feed is not accessible.
         try {
-          wlogger.error(
-            'Coinbase could be be retrieved. Trying to retrieve price from Coinex'
-          )
-
-          usdPerBCH = await _this.getCoinexPrice()
+          usdPerBCH = await _this.getCoinbasePrice()
         } catch (err) {
-          wlogger.error(
-            'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state.'
-          )
-          wlogger.error(err)
+          try {
+            wlogger.error(
+              'Coinbase could be be retrieved. Trying to retrieve price from Coinex'
+            )
 
-          const state = _this.tlUtil.readState()
-          return state.usdPerBCH
+            usdPerBCH = await _this.getCoinexPrice()
+          } catch (err) {
+            wlogger.error(
+              'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state. Error: ',
+              err
+            )
+
+            const state = _this.tlUtil.readState()
+            return state.usdPerBCH
+          }
         }
       }
 
@@ -642,7 +640,7 @@ class TokenLiquidity {
       await _this.tlUtil.saveState(config)
       return config.usdPerBCH
     } catch (err) {
-      wlogger.error('Error in token-liquidity.js/getPrice()')
+      wlogger.error('Error in token-liquidity.js/getPrice(): ', err)
       // throw err
 
       // Return the price from the state.

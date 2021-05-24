@@ -21,6 +21,10 @@ const jwtLib = new JwtLib({
 const TLUtils = require('../src/lib/util')
 const tlUtil = new TLUtils()
 
+// Email contact library.
+const Email = require('../src/lib/contact')
+const email = new Email()
+
 // Check all environment variables before starting the app.
 tlUtil.checkEnvVars(config)
 
@@ -62,88 +66,115 @@ let bchBalance
 let tokenBalance
 
 async function startTokenLiquidity () {
-  // Read in the state file.
   try {
-    const state = tlUtil.readState()
-    console.log(`state: ${JSON.stringify(state, null, 2)}`)
-  } catch (err) {
-    wlogger.error('Could not read state.json file.')
-  }
+    // Read in the state file.
+    try {
+      const state = tlUtil.readState()
+      console.log(`state: ${JSON.stringify(state, null, 2)}`)
+    } catch (err) {
+      wlogger.error('Could not read state.json file.')
+    }
 
-  // Get the JWT token needed to interact with the FullStack.cash API.
-  await getJwt()
-  bch = new BCH(config) // Reinitialize bchjs with the JWT token.
-  slp = new SLP(config) // Reinitialize bchjs with the JWT token.
-
-  // Get BCH balance.
-  const addressBalance = await bch.getBCHBalance(config.BCH_ADDR, false)
-  bchBalance = addressBalance
-  config.bchBalance = bchBalance
-  wlogger.info(
-    `BCH address ${config.BCH_ADDR} has a balance of ${bchBalance} BCH`
-  )
-
-  // console.log(`addressInfo: ${JSON.stringify(addressInfo, null, 2)}`)
-
-  // Get all the TXIDs associated with this apps address. The app assumes all
-  // these TXs have been processed.
-  // const seenTxs = addressInfo.txids
-  const historicalTxs = await bch.getTransactions(config.BCH_ADDR)
-  const seenTxs = bch.justTxs(historicalTxs)
-  // console.log(`seenTxs: ${JSON.stringify(seenTxs, null, 2)}`)
-
-  // Get SLP token balance
-  tokenBalance = await slp.getTokenBalance(config.SLP_ADDR)
-  wlogger.info(
-    `SLP token address ${config.SLP_ADDR} has a balance of: ${tokenBalance} PSF`
-  )
-  config.tokenBalance = tokenBalance
-
-  // Get the BCH-USD exchange rate.
-  const USDperBCH = await lib.getPrice()
-
-  // Calculate exchange rate spot price.;
-  const marketCap = USDperBCH * bchBalance
-  console.log(`Market cap of BCH controlled by app: $${marketCap}`)
-  const price = lib.getSpotPrice(bchBalance, USDperBCH)
-  console.log(`Token spot price: $${price}`)
-
-  // Kick off the processing loop. It periodically checks for new transactions
-  // and reacts to them.
-  timerHandle = setInterval(async function () {
-    await processingLoop(seenTxs)
-  }, 60000 * 2)
-
-  // Interval to consolidate UTXOs (maintenance)
-  setInterval(async function () {
-    const hex = await bch.consolidateUtxos()
-
-    // Exit if there is not enough UTXOs to consolidate.
-    if (!hex) return
-
-    wlogger.info('consolidateUtxos hex: ', hex)
-    await bch.broadcastBchTx(hex)
-  }, CONSOLIDATE_INTERVAL)
-
-  // Interval to update BCH spot price.
-  setInterval(async function () {
-    console.log('Updating BCH price.')
-    await lib.getPrice()
-  }, PRICE_UPDATE_INTERVAL)
-
-  // Renew the JWT token every 24 hours
-  setInterval(async function () {
-    wlogger.info('Updating FullStack.cash JWT token')
+    // Get the JWT token needed to interact with the FullStack.cash API.
     await getJwt()
-    bch = new BCH() // Reinitialize bchjs with the JWT token.
-    slp = new SLP() // Reinitialize bchjs with the JWT token.
-  }, 60000 * 60) // Once every hour
+    bch = new BCH(config) // Reinitialize bchjs with the JWT token.
+    slp = new SLP(config) // Reinitialize bchjs with the JWT token.
 
-  // Periodically write out status information to the log file. This ensures
-  // the log file is created every day and the the /logapi route works.
-  setInterval(function () {
-    checkBalances()
-  }, 60000 * 60) // 1 hour
+    // Get BCH balance.
+    const addressBalance = await bch.getBCHBalance(config.BCH_ADDR, false)
+    bchBalance = addressBalance
+    config.bchBalance = bchBalance
+    wlogger.info(
+      `BCH address ${config.BCH_ADDR} has a balance of ${bchBalance} BCH`
+    )
+
+    // console.log(`addressInfo: ${JSON.stringify(addressInfo, null, 2)}`)
+
+    // Get all the TXIDs associated with this apps address. The app assumes all
+    // these TXs have been processed.
+    // const seenTxs = addressInfo.txids
+    const historicalTxs = await bch.getTransactions(config.BCH_ADDR)
+    const seenTxs = bch.justTxs(historicalTxs)
+    // console.log(`seenTxs: ${JSON.stringify(seenTxs, null, 2)}`)
+
+    // Get SLP token balance
+    tokenBalance = await slp.getTokenBalance(config.SLP_ADDR)
+    wlogger.info(
+      `SLP token address ${config.SLP_ADDR} has a balance of: ${tokenBalance} PSF`
+    )
+    config.tokenBalance = tokenBalance
+
+    // Get the BCH-USD exchange rate.
+    const USDperBCH = await lib.getPrice()
+    console.log('spot price: ', USDperBCH)
+
+    // Calculate exchange rate spot price.;
+    const marketCap = USDperBCH * bchBalance
+    console.log(`Market cap of BCH controlled by app: $${marketCap}`)
+    const price = lib.getSpotPrice(bchBalance, USDperBCH)
+    console.log(`Token spot price: $${price}`)
+
+    // Kick off the processing loop. It periodically checks for new transactions
+    // and reacts to them.
+    timerHandle = setInterval(async function () {
+      try {
+        await processingLoop(seenTxs)
+      } catch (err) {
+        wlogger.error('Error trying to execute processingLoop(): ', err)
+      }
+    }, 60000 * 2)
+
+    // Interval to consolidate UTXOs (maintenance)
+    setInterval(async function () {
+      try {
+        const hex = await bch.consolidateUtxos()
+
+        // Exit if there is not enough UTXOs to consolidate.
+        if (!hex) return
+
+        wlogger.info('consolidateUtxos hex: ', hex)
+        await bch.broadcastBchTx(hex)
+      } catch (err) {
+        wlogger.error('Error trying to consolidate UTXOs: ', err)
+      }
+    }, CONSOLIDATE_INTERVAL)
+
+    // Interval to update BCH spot price.
+    setInterval(async function () {
+      try {
+        console.log('Updating BCH price.')
+        await lib.getPrice()
+      } catch (err) {
+        wlogger.error('Error trying to update BCH price: ', err)
+      }
+    }, PRICE_UPDATE_INTERVAL)
+
+    // Renew the JWT token every 24 hours
+    setInterval(async function () {
+      try {
+        wlogger.info('Updating FullStack.cash JWT token')
+        await getJwt()
+        bch = new BCH(config) // Reinitialize bchjs with the JWT token.
+        slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+      } catch (err) {
+        wlogger.error('Error trying to renew JWT token: ', err)
+      }
+    }, 60000 * 60) // Once every hour
+
+    // Periodically write out status information to the log file. This ensures
+    // the log file is created every day and the the /logapi route works.
+    setInterval(function () {
+      try {
+        checkBalances()
+      } catch (err) {
+        wlogger.error('Error trying to check balances: ', err)
+      }
+    }, 60000 * 60) // 1 hour
+  } catch (err) {
+    console.error('Error trying to start token-liquidity app: ', err)
+    console.log('Exiting.')
+    process.exit(1)
+  }
 }
 
 // This 'processing loop' function is called periodically to identify and process
@@ -201,6 +232,8 @@ async function processingLoop (seenTxs) {
         )}`
       )
 
+      // Stop the processing timer while the app is actively processing a
+      // transaction.
       clearInterval(timerHandle)
 
       // const result = await queue.pRetryProcessTx(obj)
@@ -241,6 +274,7 @@ async function processingLoop (seenTxs) {
         await waitForBlockbook(seenTxs)
       }
 
+      // Start the processing timer again.
       timerHandle = setInterval(async function () {
         await processingLoop(seenTxs)
       }, 60000 * 2)
@@ -249,6 +283,21 @@ async function processingLoop (seenTxs) {
     wlogger.error('Error in token-liquidity.js.', err)
     console.log(' ')
     console.log('Err: ', err)
+
+    // If the number of retries has been exhausted, send out an email alert.
+    if (config.useEmailAlerts) {
+      const emailObj = {
+        callerMsg:
+          'Warning: bin/token-liquidity.js/processingLoop() had an error, but is continuing processing. Now would be a good time to check on the app.',
+        errorObj: err
+      }
+      await email.sendTLEmailAlert(emailObj)
+    }
+
+    // Start the processing timer again.
+    timerHandle = setInterval(async function () {
+      await processingLoop(seenTxs)
+    }, 60000 * 2)
   }
 }
 

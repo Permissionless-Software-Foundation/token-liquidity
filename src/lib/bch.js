@@ -21,16 +21,9 @@ class BCH {
   constructor (config) {
     this.config = config
 
-    // Determine if this is a testnet wallet or a mainnet wallet.
-    if (this.config.NETWORK === 'testnet') {
-      this.bchjs = new this.config.BCHLIB({
-        restURL: this.config.TESTNET_REST
-      })
-    } else {
-      this.bchjs = new this.config.BCHLIB({
-        restURL: this.config.MAINNET_REST
-      })
-    }
+    this.bchjs = new this.config.BCHLIB({
+      restURL: this.config.MAINNET_REST
+    })
 
     this.tlUtils = tlUtils
 
@@ -292,9 +285,7 @@ class BCH {
   async broadcastBchTx (hex) {
     try {
       // sendRawTransaction to running BCH node
-      const broadcast = await this.bchjs.RawTransactions.sendRawTransaction(
-        hex
-      )
+      const broadcast = await this.bchjs.RawTransactions.sendRawTransaction(hex)
       wlogger.verbose(`Transaction ID: ${broadcast}`)
 
       return broadcast
@@ -534,6 +525,18 @@ class BCH {
   // Extracts just the txids from the array passed back from getTransactions().
   justTxs (txsArr) {
     return txsArr.map(elem => elem.tx_hash)
+  }
+
+  // Get the eCash spot price.
+  async getEcashPrice () {
+    try {
+      const price = await this.bchjs.Price.getBchaUsd()
+
+      return price
+    } catch (err) {
+      wlogger.error('Error in bch.js/getEcashPrice()')
+      throw err
+    }
   }
 }
 
