@@ -526,6 +526,18 @@ class BCH {
   justTxs (txsArr) {
     return txsArr.map(elem => elem.tx_hash)
   }
+
+  // Get the eCash spot price.
+  async getEcashPrice () {
+    try {
+      const price = await this.bchjs.Price.getBchaUsd()
+
+      return price
+    } catch (err) {
+      wlogger.error('Error in bch.js/getEcashPrice()')
+      throw err
+    }
+  }
 }
 
 module.exports = BCH

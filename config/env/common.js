@@ -52,7 +52,9 @@ configOut = {
 
   // bch-js settings.
   MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v4/',
-  BCHLIB: BCHJS
+  BCHLIB: BCHJS,
+
+  blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch'
 }
 
 module.exports = configOut

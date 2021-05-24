@@ -102,6 +102,7 @@ async function startTokenLiquidity () {
 
     // Get the BCH-USD exchange rate.
     const USDperBCH = await lib.getPrice()
+    console.log('spot price: ', USDperBCH)
 
     // Calculate exchange rate spot price.;
     const marketCap = USDperBCH * bchBalance

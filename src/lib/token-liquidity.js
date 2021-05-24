@@ -60,6 +60,7 @@ class TokenLiquidity {
     this.tlUtil = tlUtil
     this.got = got
     this.email = new Email()
+    this.config = config
   }
 
   async getObjProcessTx () {
@@ -594,34 +595,31 @@ class TokenLiquidity {
     try {
       let usdPerBCH
 
-      try {
-        // const rawRate = await _this.got(
-        //   'https://api.coinbase.com/v2/exchange-rates?currency=BCH'
-        // )
-        //
-        // const jsonRate = JSON.parse(rawRate.body)
-        // // console.log(`jsonRate: ${JSON.stringify(jsonRate, null, 2)}`);
-        //
-        // usdPerBCH = jsonRate.data.rates.USD
-        //
-        // wlogger.debug(`USD/BCH exchange rate: $${usdPerBCH}`)
+      // console.log('Current blockchain: ', this.config.blockchain)
 
-        usdPerBCH = await _this.getCoinbasePrice()
-      } catch (err) {
+      if (this.config.blockchain === 'ecash') {
+        usdPerBCH = await _this.bch.getEcashPrice()
+      } else {
+        // Try to get the current spot price of BCH from Coinbase, but fallback
+        // to Coinex if the Coinbase feed is not accessible.
         try {
-          wlogger.error(
-            'Coinbase could be be retrieved. Trying to retrieve price from Coinex'
-          )
-
-          usdPerBCH = await _this.getCoinexPrice()
+          usdPerBCH = await _this.getCoinbasePrice()
         } catch (err) {
-          wlogger.error(
-            'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state.'
-          )
-          wlogger.error(err)
+          try {
+            wlogger.error(
+              'Coinbase could be be retrieved. Trying to retrieve price from Coinex'
+            )
 
-          const state = _this.tlUtil.readState()
-          return state.usdPerBCH
+            usdPerBCH = await _this.getCoinexPrice()
+          } catch (err) {
+            wlogger.error(
+              'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state.'
+            )
+            wlogger.error(err)
+
+            const state = _this.tlUtil.readState()
+            return state.usdPerBCH
+          }
         }
       }
 
@@ -642,7 +640,7 @@ class TokenLiquidity {
       await _this.tlUtil.saveState(config)
       return config.usdPerBCH
     } catch (err) {
-      wlogger.error('Error in token-liquidity.js/getPrice()')
+      wlogger.error('Error in token-liquidity.js/getPrice(): ', err)
       // throw err
 
       // Return the price from the state.
