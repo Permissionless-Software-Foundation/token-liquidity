@@ -328,7 +328,10 @@ class TokenLiquidity {
           }
 
           // Abort for dust
-          if (error.message.includes('code 64')) {
+          if (
+            error.message.includes('code 64') ||
+            error.message.includes('dust')
+          ) {
             throw new pRetry.AbortError('Exchange aborted because of dust.')
           }
 
