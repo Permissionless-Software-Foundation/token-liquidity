@@ -613,9 +613,9 @@ class TokenLiquidity {
             usdPerBCH = await _this.getCoinexPrice()
           } catch (err) {
             wlogger.error(
-              'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state.'
+              'Coinbase and Coinex exchange rates could not be retrieved!. Retrieving price from state. Error: ',
+              err
             )
-            wlogger.error(err)
 
             const state = _this.tlUtil.readState()
             return state.usdPerBCH

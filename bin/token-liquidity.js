@@ -21,6 +21,10 @@ const jwtLib = new JwtLib({
 const TLUtils = require('../src/lib/util')
 const tlUtil = new TLUtils()
 
+// Email contact library.
+const Email = require('../src/lib/contact')
+const email = new Email()
+
 // Check all environment variables before starting the app.
 tlUtil.checkEnvVars(config)
 
@@ -228,6 +232,8 @@ async function processingLoop (seenTxs) {
         )}`
       )
 
+      // Stop the processing timer while the app is actively processing a
+      // transaction.
       clearInterval(timerHandle)
 
       // const result = await queue.pRetryProcessTx(obj)
@@ -268,6 +274,7 @@ async function processingLoop (seenTxs) {
         await waitForBlockbook(seenTxs)
       }
 
+      // Start the processing timer again.
       timerHandle = setInterval(async function () {
         await processingLoop(seenTxs)
       }, 60000 * 2)
@@ -276,6 +283,21 @@ async function processingLoop (seenTxs) {
     wlogger.error('Error in token-liquidity.js.', err)
     console.log(' ')
     console.log('Err: ', err)
+
+    // If the number of retries has been exhausted, send out an email alert.
+    if (config.useEmailAlerts) {
+      const emailObj = {
+        callerMsg:
+          'Warning: bin/token-liquidity.js/processingLoop() had an error, but is continuing processing. Now would be a good time to check on the app.',
+        errorObj: err
+      }
+      await email.sendTLEmailAlert(emailObj)
+    }
+
+    // Start the processing timer again.
+    timerHandle = setInterval(async function () {
+      await processingLoop(seenTxs)
+    }, 60000 * 2)
   }
 }
 
