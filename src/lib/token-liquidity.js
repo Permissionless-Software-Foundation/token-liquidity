@@ -359,9 +359,22 @@ class TokenLiquidity {
     } catch (error) {
       console.log('Error in token-liquidity.js/pRetryProcessTx()')
       wlogger.error('Error in token-liquidity.js/pRetryProcessTx()', error)
-      // return error
-      throw error
-      // console.log(error)
+
+      // Send an email to alert about the exception.
+      if (_this.config.useEmailAlerts) {
+        const emailObj = {
+          callerMsg:
+            'Warning: lib/token-liquidity.js/pRetryProcessTx() had an error, but is continuing processing. Now would be a good time to check on the app.',
+          errorObj: error
+        }
+        await _this.email.sendTLEmailAlert(emailObj)
+      }
+
+      // Note: Do not throw an error, as that will prevent any other transactions
+      // in the queue to be ignored.
+
+      // This return value will immediately process the next transaction.
+      return { txid: null }
     }
   }
 
