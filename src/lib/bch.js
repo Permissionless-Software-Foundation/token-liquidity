@@ -538,6 +538,23 @@ class BCH {
       throw err
     }
   }
+
+  // Add a percentage fee to an exchange.
+  addFee (startAmount) {
+    try {
+      const MULTIPLIER = 0.99 // 1% fee
+
+      let endAmount = startAmount * MULTIPLIER
+
+      // Round to 8 decimal points
+      endAmount = this.bchjs.Util.floor8(endAmount)
+
+      return endAmount
+    } catch (err) {
+      wlogger.error('Error in bch.js/addFee()')
+      throw err
+    }
+  }
 }
 
 module.exports = BCH

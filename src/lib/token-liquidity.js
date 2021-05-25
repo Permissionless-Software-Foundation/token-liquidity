@@ -168,7 +168,11 @@ class TokenLiquidity {
         const retObj = _this.exchangeTokensForBCH(exchangeObj)
         wlogger.debug('retObj: ', retObj)
 
-        const bchOut = retObj.bchOut
+        let bchOut = retObj.bchOut
+
+        // Add a 1% fee to the exchange.
+        bchOut = this.bch.addFee(bchOut)
+
         wlogger.info(
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
@@ -220,21 +224,24 @@ class TokenLiquidity {
 
         const retObj = _this.exchangeBCHForTokens(exchangeObj)
 
+        let tokensOut = retObj.tokensOut
+
+        // Add a 1% fee to the exchange.
+        tokensOut = this.bch.addFee(tokensOut)
+
         wlogger.info(
-          `Ready to send ${retObj.tokensOut} tokens in exchange for ${bchQty} BCH`
+          `Ready to send ${tokensOut} tokens in exchange for ${bchQty} BCH`
         )
 
         // Calculate the new balances
         newBchBalance = this.tlUtil.round8(
           Number(bchBalance) + exchangeObj.bchIn
         )
-        newTokenBalance = this.tlUtil.round8(
-          Number(tokenBalance) - retObj.tokensOut
-        )
+        newTokenBalance = this.tlUtil.round8(Number(tokenBalance) - tokensOut)
         wlogger.debug(`retObj: ${util.inspect(retObj)}`)
         wlogger.info(`New BCH balance: ${newBchBalance}`)
         wlogger.info(`New token balance: ${newTokenBalance}`)
-        console.log('retObj.tokensOut', retObj.tokensOut)
+        console.log('tokensOut', tokensOut)
 
         // Check if transaction includes an OP_RETURN instruction
         const opReturnData = await bch.readOpReturn(txid)
@@ -256,11 +263,7 @@ class TokenLiquidity {
           // Normal BCH transaction with no OP_RETURN.
         } else {
           // Send Tokens
-          const tokenHex = await slp.createTokenTx(
-            userAddr,
-            retObj.tokensOut,
-            245
-          )
+          const tokenHex = await slp.createTokenTx(userAddr, tokensOut, 245)
 
           await slp.broadcastTokenTx(tokenHex)
         }

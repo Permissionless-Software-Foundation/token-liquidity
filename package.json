@@ -8,7 +8,7 @@
     "start:temp": "env-cmd ./token-liquidity.sh && npm start",
     "test": "env-cmd npm run test:all",
     "test:integration": "env-cmd mocha --timeout 15000 test/integration",
-    "test:temp:unit": "env-cmd mocha -g '#contact' test/unit/biz-logic/",
+    "test:temp:unit": "env-cmd mocha -g '#addFee' test/unit/biz-logic/",
     "test:temp:integration": "env-cmd mocha -g '#contact' test/integration/",
     "lint": "standard --env mocha --fix",
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
