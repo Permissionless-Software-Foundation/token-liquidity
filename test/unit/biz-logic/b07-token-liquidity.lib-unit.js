@@ -259,14 +259,13 @@ describe('#token-liquidity', () => {
     })
   })
 
-  describe('#pRetryProcessTx function', () => {
-    it('should throw error if parameters are not defined', async () => {
-      try {
-        await lib.pRetryProcessTx()
-      } catch (error) {
-        // console.log('Error: ', error)
-        assert.include(error.message, 'obj is undefined')
-      }
+  describe('#pRetryProcessTx-function', () => {
+    it('should return txid=null if parameters are not defined', async () => {
+      // Force no email.
+      lib.config.useEmailAlerts = 0
+
+      const result = await lib.pRetryProcessTx()
+      console.log('result: ', result)
     })
 
     it('Should return object', async () => {
@@ -414,7 +413,7 @@ describe('#token-liquidity', () => {
     describe('#getPrice()', () => {
       it('should get the current price from coinbase api', async () => {
         try {
-          sandbox.stub(lib, 'getCoinbasePrice').resolves(540.00)
+          sandbox.stub(lib, 'getCoinbasePrice').resolves(540.0)
 
           // sandbox.stub(lib.bch, 'getBCHBalance').resolves(12.44768481)
 
@@ -430,7 +429,7 @@ describe('#token-liquidity', () => {
         sandbox.stub(lib, 'getCoinbasePrice').rejects(new Error('test error'))
 
         // Stub network connection to Coinex.
-        sandbox.stub(lib, 'getCoinexPrice').resolves(540.00)
+        sandbox.stub(lib, 'getCoinexPrice').resolves(540.0)
 
         const result = await lib.getPrice()
         assert.isNumber(result)
@@ -463,7 +462,9 @@ describe('#token-liquidity', () => {
           sandbox.stub(lib, 'getCoinexPrice').rejects(new Error('test error'))
 
           // Force an error in working with the blockchain.
-          sandbox.stub(lib.bch, 'getBCHBalance').rejects(new Error('test error'))
+          sandbox
+            .stub(lib.bch, 'getBCHBalance')
+            .rejects(new Error('test error'))
 
           const result = await lib.getPrice()
           // console.log('result: ', result)

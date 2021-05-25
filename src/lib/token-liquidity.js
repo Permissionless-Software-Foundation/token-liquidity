@@ -168,7 +168,11 @@ class TokenLiquidity {
         const retObj = _this.exchangeTokensForBCH(exchangeObj)
         wlogger.debug('retObj: ', retObj)
 
-        const bchOut = retObj.bchOut
+        let bchOut = retObj.bchOut
+
+        // Add a 1% fee to the exchange.
+        bchOut = this.bch.addFee(bchOut)
+
         wlogger.info(
           `Ready to send ${bchOut} BCH in exchange for ${isTokenTx} tokens`
         )
@@ -220,21 +224,24 @@ class TokenLiquidity {
 
         const retObj = _this.exchangeBCHForTokens(exchangeObj)
 
+        let tokensOut = retObj.tokensOut
+
+        // Add a 1% fee to the exchange.
+        tokensOut = this.bch.addFee(tokensOut)
+
         wlogger.info(
-          `Ready to send ${retObj.tokensOut} tokens in exchange for ${bchQty} BCH`
+          `Ready to send ${tokensOut} tokens in exchange for ${bchQty} BCH`
         )
 
         // Calculate the new balances
         newBchBalance = this.tlUtil.round8(
           Number(bchBalance) + exchangeObj.bchIn
         )
-        newTokenBalance = this.tlUtil.round8(
-          Number(tokenBalance) - retObj.tokensOut
-        )
+        newTokenBalance = this.tlUtil.round8(Number(tokenBalance) - tokensOut)
         wlogger.debug(`retObj: ${util.inspect(retObj)}`)
         wlogger.info(`New BCH balance: ${newBchBalance}`)
         wlogger.info(`New token balance: ${newTokenBalance}`)
-        console.log('retObj.tokensOut', retObj.tokensOut)
+        console.log('tokensOut', tokensOut)
 
         // Check if transaction includes an OP_RETURN instruction
         const opReturnData = await bch.readOpReturn(txid)
@@ -256,11 +263,7 @@ class TokenLiquidity {
           // Normal BCH transaction with no OP_RETURN.
         } else {
           // Send Tokens
-          const tokenHex = await slp.createTokenTx(
-            userAddr,
-            retObj.tokensOut,
-            245
-          )
+          const tokenHex = await slp.createTokenTx(userAddr, tokensOut, 245)
 
           await slp.broadcastTokenTx(tokenHex)
         }
@@ -328,7 +331,10 @@ class TokenLiquidity {
           }
 
           // Abort for dust
-          if (error.message.includes('code 64')) {
+          if (
+            error.message.includes('code 64') ||
+            error.message.includes('dust')
+          ) {
             throw new pRetry.AbortError('Exchange aborted because of dust.')
           }
 
@@ -353,9 +359,22 @@ class TokenLiquidity {
     } catch (error) {
       console.log('Error in token-liquidity.js/pRetryProcessTx()')
       wlogger.error('Error in token-liquidity.js/pRetryProcessTx()', error)
-      // return error
-      throw error
-      // console.log(error)
+
+      // Send an email to alert about the exception.
+      if (_this.config.useEmailAlerts) {
+        const emailObj = {
+          callerMsg:
+            'Warning: lib/token-liquidity.js/pRetryProcessTx() had an error, but is continuing processing. Now would be a good time to check on the app.',
+          errorObj: error
+        }
+        await _this.email.sendTLEmailAlert(emailObj)
+      }
+
+      // Note: Do not throw an error, as that will prevent any other transactions
+      // in the queue to be ignored.
+
+      // This return value will immediately process the next transaction.
+      return { txid: null }
     }
   }
 

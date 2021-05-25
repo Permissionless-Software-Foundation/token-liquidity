@@ -618,4 +618,28 @@ describe('#bch-lib', () => {
       }
     })
   })
+
+  describe('#addFee', () => {
+    it('should reduce the input by 1%', () => {
+      const startAmount = 0.001
+
+      const result = uut.addFee(startAmount)
+      console.log(`result: ${result}`)
+
+      assert.equal(result, 0.00099)
+    })
+
+    it('should catch and throw an error', () => {
+      try {
+        // force an error.
+        sandbox.stub(uut.bchjs.Util, 'floor8').throws(new Error('test error'))
+
+        uut.addFee(0.001)
+
+        assert.fail('Unexpected code path')
+      } catch (err) {
+        assert.equal(err.message, 'test error')
+      }
+    })
+  })
 })
