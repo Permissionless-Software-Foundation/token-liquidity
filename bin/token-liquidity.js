@@ -65,7 +65,7 @@ let timerHandle
 let bchBalance
 let tokenBalance
 
-async function startTokenLiquidity() {
+async function startTokenLiquidity () {
   try {
     // Read in the state file.
     try {
@@ -116,7 +116,7 @@ async function startTokenLiquidity() {
 
     // Kick off the processing loop. It periodically checks for new transactions
     // and reacts to them.
-    timerHandle = setInterval(async function() {
+    timerHandle = setInterval(async function () {
       try {
         await processingLoop(seenTxs)
       } catch (err) {
@@ -125,7 +125,7 @@ async function startTokenLiquidity() {
     }, 60000 * 2)
 
     // Interval to consolidate UTXOs (maintenance)
-    setInterval(async function() {
+    setInterval(async function () {
       try {
         const hex = await bch.consolidateUtxos()
 
@@ -140,7 +140,7 @@ async function startTokenLiquidity() {
     }, CONSOLIDATE_INTERVAL)
 
     // Interval to update BCH spot price.
-    setInterval(async function() {
+    setInterval(async function () {
       try {
         console.log('Updating BCH price.')
         await lib.getPrice()
@@ -150,7 +150,7 @@ async function startTokenLiquidity() {
     }, PRICE_UPDATE_INTERVAL)
 
     // Renew the JWT token every 24 hours
-    setInterval(async function() {
+    setInterval(async function () {
       try {
         wlogger.info('Updating FullStack.cash JWT token')
         await getJwt()
@@ -163,7 +163,7 @@ async function startTokenLiquidity() {
 
     // Periodically write out status information to the log file. This ensures
     // the log file is created every day and the the /logapi route works.
-    setInterval(function() {
+    setInterval(function () {
       try {
         checkBalances()
       } catch (err) {
@@ -179,7 +179,7 @@ async function startTokenLiquidity() {
 
 // This 'processing loop' function is called periodically to identify and process
 // any new transactions.
-async function processingLoop(seenTxs) {
+async function processingLoop (seenTxs) {
   try {
     const now = new Date()
     let outStr = `${now.toLocaleString()}: Checking transactions... `
@@ -275,7 +275,7 @@ async function processingLoop(seenTxs) {
       }
 
       // Start the processing timer again.
-      timerHandle = setInterval(async function() {
+      timerHandle = setInterval(async function () {
         await processingLoop(seenTxs)
       }, 60000 * 2)
     }
@@ -311,7 +311,7 @@ async function processingLoop(seenTxs) {
     }
 
     // Start the processing timer again.
-    timerHandle = setInterval(async function() {
+    timerHandle = setInterval(async function () {
       await processingLoop(seenTxs)
     }, 60000 * 2)
   }
@@ -319,7 +319,7 @@ async function processingLoop(seenTxs) {
 
 // Sleep for 5 minutes to give Blockbook time to process the last transaction.
 // Disables the processing loop while it waits.
-async function waitForBlockbook(seenTxs) {
+async function waitForBlockbook (seenTxs) {
   const now = new Date()
   wlogger.info(
     `${now.toLocaleString()}: Waiting 5 minutes before processing next transaction...`
@@ -333,7 +333,7 @@ async function waitForBlockbook(seenTxs) {
 // Get's a JWT token from FullStack.cash.
 // This code based on the jwt-bch-demo:
 // https://github.com/Permissionless-Software-Foundation/jwt-bch-demo
-async function getJwt() {
+async function getJwt () {
   try {
     // Log into the auth server.
     await jwtLib.register()
@@ -361,7 +361,7 @@ async function getJwt() {
 }
 
 // Called by a timer interval to create a timestamp and check balances.
-async function checkBalances() {
+async function checkBalances () {
   try {
     const state = tlUtil.readState()
     const effTokenBal = lib.getEffectiveTokenBalance(state.bchBalance)
@@ -378,7 +378,7 @@ async function checkBalances() {
   }
 }
 
-function sleep(ms) {
+function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
