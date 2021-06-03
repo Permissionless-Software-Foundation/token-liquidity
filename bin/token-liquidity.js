@@ -294,6 +294,13 @@ async function processingLoop (seenTxs) {
       await email.sendTLEmailAlert(emailObj)
     }
 
+    // Clear any interval that may have already existed.
+    try {
+      clearInterval(timerHandle)
+    } catch (err) {
+      /* exit silently */
+    }
+
     // Start the processing timer again.
     timerHandle = setInterval(async function () {
       await processingLoop(seenTxs)
