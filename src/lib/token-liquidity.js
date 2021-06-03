@@ -50,7 +50,7 @@ const BCH_QTY_ORIGINAL = config.BCH_QTY_ORIGINAL
 let _this
 
 class TokenLiquidity {
-  constructor () {
+  constructor() {
     _this = this
     _this.objProcessTx = {}
 
@@ -63,11 +63,11 @@ class TokenLiquidity {
     this.config = config
   }
 
-  async getObjProcessTx () {
+  async getObjProcessTx() {
     return _this.objProcessTx
   }
 
-  async setObjProcessTx (obj) {
+  async setObjProcessTx(obj) {
     _this.objProcessTx = obj
   }
 
@@ -78,7 +78,7 @@ class TokenLiquidity {
   // Add them to the seenTxs array after they've been processed.
   //  - Add them before processing in case something goes wrong with the processing.
   // process these txs
-  async detectNewTxs (obj) {
+  async detectNewTxs(obj) {
     try {
       const { seenTxs } = obj
 
@@ -117,7 +117,7 @@ class TokenLiquidity {
   }
 
   // Processes a single TX, sends tokens or BCH based on the type of transaction.
-  async processTx (inObj) {
+  async processTx(inObj) {
     try {
       const { txid, bchBalance, tokenBalance } = inObj
 
@@ -299,7 +299,7 @@ class TokenLiquidity {
 
   // This function wraps the tryProcessTx() function with the p-retry library.
   // This will allow it to try multiple times in the event of an error.
-  async pRetryProcessTx (obj) {
+  async pRetryProcessTx(obj) {
     try {
       // Update global var with obj
       // This is because the function that executes the p-retry library
@@ -340,9 +340,18 @@ class TokenLiquidity {
 
           // If the number of retries has been exhausted, send out an email alert.
           if (!error.retriesLeft && config.useEmailAlerts) {
+            // Try to convert the error object into a JSON string. If that's not possible,
+            // then try to copy the message.
+            let errorStr = ''
+            try {
+              errorStr = JSON.stringify(error, null, 2)
+            } catch {
+              errorStr = error.message
+            }
+
             const emailObj = {
               callerMsg: 'lib/slp.js/handleMoveTokenError()',
-              errorObj: error
+              errorObj: errorStr
             }
             await _this.email.sendTLEmailAlert(emailObj)
           }
@@ -362,10 +371,19 @@ class TokenLiquidity {
 
       // Send an email to alert about the exception.
       if (_this.config.useEmailAlerts) {
+        // Try to convert the error object into a JSON string. If that's not possible,
+        // then try to copy the message.
+        let errorStr = ''
+        try {
+          errorStr = JSON.stringify(error, null, 2)
+        } catch {
+          errorStr = error.message
+        }
+
         const emailObj = {
           callerMsg:
             'Warning: lib/token-liquidity.js/pRetryProcessTx() had an error, but is continuing processing. Now would be a good time to check on the app.',
-          errorObj: error
+          errorObj: errorStr
         }
         await _this.email.sendTLEmailAlert(emailObj)
       }
@@ -381,7 +399,7 @@ class TokenLiquidity {
   // Calculates the numbers of tokens to send to user, in exchange for the BCH
   // the user sent to the app.
   // This function only uses the BCH to calculate the token output.
-  exchangeBCHForTokens (obj) {
+  exchangeBCHForTokens(obj) {
     try {
       const {
         bchIn,
@@ -435,7 +453,7 @@ class TokenLiquidity {
 
   // Calculates the amount of BCH to send to the user, in exchange for the BCH
   // the user sent to the app.
-  exchangeTokensForBCH (obj) {
+  exchangeTokensForBCH(obj) {
     try {
       wlogger.silly('Entering exchangeTokensForBCH.', obj)
 
@@ -502,7 +520,7 @@ class TokenLiquidity {
   // Returns the 'effective' token balance used when calculating an exchange.
   // This is based on the BCH balance and should be less than or equal to
   // the 'actual' token balance.
-  getEffectiveTokenBalance (bchBalance) {
+  getEffectiveTokenBalance(bchBalance) {
     try {
       if (typeof bchBalance === 'undefined') {
         throw new Error('bchBalance is required')
@@ -525,7 +543,7 @@ class TokenLiquidity {
 
   // Returns the 'spot price'. The number of tokens that would be recieved if
   // 1 BCH was sent to the liquidity app.
-  getSpotPrice (bchBalance, usdPerBCH) {
+  getSpotPrice(bchBalance, usdPerBCH) {
     try {
       if (typeof bchBalance === 'undefined') {
         throw new Error('bchBalance is required')
@@ -552,7 +570,7 @@ class TokenLiquidity {
   }
 
   // Retrieve the current BCH and token balances from the blockchain.
-  async getBlockchainBalances () {
+  async getBlockchainBalances() {
     try {
       // Get BCH balance from the blockchain
       const addressInfo = await _this.bch.getBCHBalance(config.BCH_ADDR, false)
@@ -573,7 +591,7 @@ class TokenLiquidity {
     }
   }
 
-  async getCoinbasePrice () {
+  async getCoinbasePrice() {
     try {
       const rawRate = await _this.got(
         'https://api.coinbase.com/v2/exchange-rates?currency=BCH'
@@ -594,7 +612,7 @@ class TokenLiquidity {
   }
 
   // Get the price of BCH from Coinex
-  async getCoinexPrice () {
+  async getCoinexPrice() {
     try {
       const price = await _this.bch.bchjs.Price.getBchUsd()
 
@@ -610,7 +628,7 @@ class TokenLiquidity {
   // previously saved price from the state.json file.
   // It will save the price to the state file when new priceses can be
   // successfully retrieved.
-  async getPrice () {
+  async getPrice() {
     try {
       let usdPerBCH
 
