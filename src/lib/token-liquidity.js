@@ -340,9 +340,18 @@ class TokenLiquidity {
 
           // If the number of retries has been exhausted, send out an email alert.
           if (!error.retriesLeft && config.useEmailAlerts) {
+            // Try to convert the error object into a JSON string. If that's not possible,
+            // then try to copy the message.
+            let errorStr = ''
+            try {
+              errorStr = JSON.stringify(error, null, 2)
+            } catch {
+              errorStr = error.message
+            }
+
             const emailObj = {
               callerMsg: 'lib/slp.js/handleMoveTokenError()',
-              errorObj: error
+              errorObj: errorStr
             }
             await _this.email.sendTLEmailAlert(emailObj)
           }
@@ -362,10 +371,19 @@ class TokenLiquidity {
 
       // Send an email to alert about the exception.
       if (_this.config.useEmailAlerts) {
+        // Try to convert the error object into a JSON string. If that's not possible,
+        // then try to copy the message.
+        let errorStr = ''
+        try {
+          errorStr = JSON.stringify(error, null, 2)
+        } catch {
+          errorStr = error.message
+        }
+
         const emailObj = {
           callerMsg:
             'Warning: lib/token-liquidity.js/pRetryProcessTx() had an error, but is continuing processing. Now would be a good time to check on the app.',
-          errorObj: error
+          errorObj: errorStr
         }
         await _this.email.sendTLEmailAlert(emailObj)
       }

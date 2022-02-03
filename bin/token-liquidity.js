@@ -286,12 +286,28 @@ async function processingLoop (seenTxs) {
 
     // If the number of retries has been exhausted, send out an email alert.
     if (config.useEmailAlerts) {
+      // Try to convert the error object into a JSON string. If that's not possible,
+      // then try to copy the message.
+      let errorStr = ''
+      try {
+        errorStr = JSON.stringify(err, null, 2)
+      } catch {
+        errorStr = err.message
+      }
+
       const emailObj = {
         callerMsg:
           'Warning: bin/token-liquidity.js/processingLoop() had an error, but is continuing processing. Now would be a good time to check on the app.',
-        errorObj: err
+        errorObj: errorStr
       }
       await email.sendTLEmailAlert(emailObj)
+    }
+
+    // Clear any interval that may have already existed.
+    try {
+      clearInterval(timerHandle)
+    } catch (err) {
+      /* exit silently */
     }
 
     // Start the processing timer again.
