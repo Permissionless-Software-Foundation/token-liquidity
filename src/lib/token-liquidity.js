@@ -22,6 +22,9 @@ const bch = new BCH(config)
 const SLP = require('./slp')
 const slp = new SLP(config)
 
+const SLP2 = require('./slp2')
+const slp2 = new SLP2(config)
+
 // Transactions library
 const Transactions = require('./transactions')
 const txs = new Transactions()
@@ -55,6 +58,7 @@ class TokenLiquidity {
     _this.objProcessTx = {}
 
     this.slp = slp
+    this.slp2 = slp2
     this.bch = bch
     this.txs = txs
     this.tlUtil = tlUtil
@@ -122,7 +126,7 @@ class TokenLiquidity {
       const { txid, bchBalance, tokenBalance } = inObj
 
       // Data validation
-      if (typeof txid !== 'string') throw new Error('txid needs to be a string')
+      if (typeof txid !== 'string') { throw new Error('txid needs to be a string') }
 
       wlogger.info(`Processing new TXID ${txid}.`)
 
@@ -421,8 +425,10 @@ class TokenLiquidity {
 
       // Use natural logarithm if wallet balance is less than 250 BCH.
       if (bchBalance < bchOriginalBalance) {
-        token1 = -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
-        token2 = -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
+        token1 =
+          -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
+        token2 =
+          -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
       } else {
         // Use linear equation if balance is greater than 250 BCH.
 

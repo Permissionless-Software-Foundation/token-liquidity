@@ -1,6 +1,5 @@
 /*
-  This library exports a class of functions for working with SLP tokens. It
-  also wraps the SLP-SDK as slp.slpsdk.
+  This library exports a class of functions for working with SLP tokens.
 */
 
 'use strict'

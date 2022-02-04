@@ -23,6 +23,7 @@ class BCH {
 
     this.bchjs = new this.config.BCHLIB({
       restURL: this.config.MAINNET_REST
+      // apiToken: process.env.BCHJSTOKEN,
     })
 
     this.tlUtils = tlUtils
@@ -285,7 +286,9 @@ class BCH {
   async broadcastBchTx (hex) {
     try {
       // sendRawTransaction to running BCH node
-      const broadcast = await this.bchjs.RawTransactions.sendRawTransaction(hex)
+      const broadcast = await this.bchjs.RawTransactions.sendRawTransaction(
+        hex
+      )
       wlogger.verbose(`Transaction ID: ${broadcast}`)
 
       return broadcast
@@ -524,7 +527,7 @@ class BCH {
 
   // Extracts just the txids from the array passed back from getTransactions().
   justTxs (txsArr) {
-    return txsArr.map(elem => elem.tx_hash)
+    return txsArr.map((elem) => elem.tx_hash)
   }
 
   // Get the eCash spot price.
