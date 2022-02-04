@@ -72,4 +72,13 @@ describe('#slp2', () => {
       assert.equal(result, false)
     })
   })
+
+  describe('#createTokenTx', () => {
+    it('should create a tx and return hex', async () => {
+      const addr = 'bitcoincash:qqsrke9lh257tqen99dkyy2emh4uty0vky9y0z0lsr'
+
+      const result = await slp2.createTokenTx(addr, 1, 245)
+      console.log(result)
+    })
+  })
 })

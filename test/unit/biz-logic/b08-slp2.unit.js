@@ -5,11 +5,13 @@
 // Public npm libraries.
 const assert = require('chai').assert
 const sinon = require('sinon')
+const cloneDeep = require('lodash.clonedeep')
 
 // Local libraries.
 const config = require('../../../config')
 const SLP2 = require('../../../src/lib/slp2')
 const mockDataLib = require('../mocks/slp2.mock')
+const mockWallet = require('../mocks/testwallet.json')
 
 describe('#slp2.js', () => {
   let uut, sandbox, mockData
@@ -19,7 +21,7 @@ describe('#slp2.js', () => {
 
     sandbox = sinon.createSandbox()
 
-    mockData = mockDataLib
+    mockData = cloneDeep(mockDataLib)
   })
 
   describe('#getTokenBalance', () => {
@@ -120,6 +122,168 @@ describe('#slp2.js', () => {
       const result = await uut.tokenTxInfo()
 
       assert.equal(result, false)
+    })
+  })
+
+  describe('#createTokenTx', () => {
+    it('should throw an error if there are no BCH UTXOs', async () => {
+      try {
+        // Mock out down-stream dependencies for a unit test.
+        sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+        sandbox
+          .stub(uut.bchjs.Electrumx, 'utxo')
+          .resolves(mockData.fulcrumEmtpyUtxos)
+
+        const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+        const qty = 1
+
+        await uut.createTokenTx(addr, qty, 245)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(`err.message: ${err.message}`)
+        assert.include(
+          err.message,
+          'Wallet does not have a BCH UTXO to pay miner fees'
+        )
+      }
+    })
+
+    it('should throw an error if there are no token UTXOs', async () => {
+      try {
+        // Mock out down-stream dependencies for a unit test.
+        sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+        sandbox
+          .stub(uut.bchjs.Electrumx, 'utxo')
+          .resolves(mockData.fulcrumUtxos)
+        sandbox
+          .stub(uut.bchjs.Utxo, 'findBiggestUtxo')
+          .resolves(mockData.bchUtxos01[0])
+        sandbox
+          .stub(uut.bchjs.PsfSlpIndexer, 'balance')
+          .resolves({ balance: { utxos: [] } })
+
+        const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+        const qty = 1
+
+        await uut.createTokenTx(addr, qty, 245)
+        // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(`err.message: ${err.message}`)
+        assert.include(err.message, 'No token UTXOs to spend! Exiting.')
+      }
+    })
+
+    it('should throw an error if there are no valid token UTXOs', async () => {
+      try {
+        // Mock out down-stream dependencies for a unit test.
+        sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+        sandbox
+          .stub(uut.bchjs.Electrumx, 'utxo')
+          .resolves(mockData.fulcrumUtxos)
+        sandbox
+          .stub(uut.bchjs.Utxo, 'findBiggestUtxo')
+          .resolves(mockData.bchUtxos01[0])
+        mockData.tokenUtxos01[0].tokenId = 'someothertokenid'
+        sandbox
+          .stub(uut.bchjs.PsfSlpIndexer, 'balance')
+          .resolves({ balance: { utxos: mockData.tokenUtxos01 } })
+
+        const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+        const qty = 1
+
+        await uut.createTokenTx(addr, qty, 245)
+        // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(`err.message: ${err.message}`)
+        assert.include(err.message, 'No token UTXOs are available')
+      }
+    })
+
+    it('should throw an error if path is zero', async () => {
+      try {
+        const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+        const qty = 1
+
+        await uut.createTokenTx(addr, qty, 0)
+        // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(`err.message: ${err.message}`)
+        assert.include(err.message, 'path must have a value of 145 or 245')
+      }
+    })
+
+    it('should throw an error if qty is 0', async () => {
+      try {
+        const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+
+        await uut.createTokenTx(addr, 0, 245)
+        // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(`err.message: ${err.message}`)
+        assert.include(err.message, 'qty must be a positive number.')
+      }
+    })
+
+    it('should generate a transaction hex for mainnet', async () => {
+      // Mock out down-stream dependencies for a unit test.
+      sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+      sandbox.stub(uut.bchjs.Electrumx, 'utxo').resolves(mockData.fulcrumUtxos)
+      sandbox
+        .stub(uut.bchjs.Utxo, 'findBiggestUtxo')
+        .resolves(mockData.bchUtxos01[0])
+      sandbox
+        .stub(uut.bchjs.PsfSlpIndexer, 'balance')
+        .resolves({ balance: { utxos: mockData.tokenUtxos01 } })
+
+      const addr = 'bitcoincash:qrnn49rx0p4xh78tts79utf0zv26vyru6vqtl9trd3'
+      const qty = 1
+
+      const result = await uut.createTokenTx(addr, qty, 245)
+      // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+      assert.isString(result)
+      assert.equal(result.indexOf('0200'), 0, 'First part of string matches.')
+    })
+
+    it('should throw an error if remainder has less than dust', async () => {
+      try {
+        // Modify the mock data to force the error for this test.
+        mockData.bchUtxos01[0].value = '1500'
+
+        // Mock out down-stream dependencies for a unit test.
+        sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+        sandbox
+          .stub(uut.bchjs.Electrumx, 'utxo')
+          .resolves(mockData.fulcrumUtxos)
+        sandbox
+          .stub(uut.bchjs.Utxo, 'findBiggestUtxo')
+          .resolves(mockData.bchUtxos01[0])
+        sandbox
+          .stub(uut.bchjs.PsfSlpIndexer, 'balance')
+          .resolves({ balance: { utxos: mockData.tokenUtxos01 } })
+
+        const addr = 'bchtest:qpwa35xq0q0cnmdu0rwzkct369hddzsqpsme94qqh2'
+        const qty = 1
+
+        await uut.createTokenTx(addr, qty, 245)
+        // console.log(`result: ${JSON.stringify(result, null, 2)}`)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(
+          err.message,
+          'Selected UTXO does not have enough satoshis'
+        )
+      }
     })
   })
 })
