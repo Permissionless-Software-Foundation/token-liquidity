@@ -262,22 +262,17 @@ class TokenLiquidity {
 
             // Call a method in the slp library to burn a select amount of tokens
             // instead of sending them to a return address.
-            const hex = await slp.burnTokenTx(retObj.tokensOut)
-            await slp.broadcastTokenTx(hex)
+            const hex = await slp2.burnTokenTx(retObj.tokensOut)
+            await slp2.broadcastTokenTx(hex)
           }
 
           // Normal BCH transaction with no OP_RETURN.
         } else {
           // Send Tokens
-          const tokenHex = await slp.createTokenTx(userAddr, tokensOut, 245)
+          const tokenHex = await slp2.createTokenTx(userAddr, tokensOut, 245)
 
-          await slp.broadcastTokenTx(tokenHex)
+          await slp2.broadcastTokenTx(tokenHex)
         }
-
-        // Send Tokens
-        // const tokenConfig = await slp.createTokenTx(userAddr, retObj.tokensOut, 245)
-
-        // await slp.broadcastTokenTx(tokenConfig)
       }
 
       const retObj = {
@@ -356,7 +351,7 @@ class TokenLiquidity {
             }
 
             const emailObj = {
-              callerMsg: 'lib/slp.js/handleMoveTokenError()',
+              callerMsg: 'lib/slp2.js/handleMoveTokenError()',
               errorObj: errorStr
             }
             await _this.email.sendTLEmailAlert(emailObj)

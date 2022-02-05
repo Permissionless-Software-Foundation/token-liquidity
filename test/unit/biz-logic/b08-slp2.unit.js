@@ -441,4 +441,124 @@ describe('#slp2.js', () => {
       }
     })
   })
+
+  describe('#broadcastTokenTx', () => {
+    it('should broadcast a tx and return the txid', async () => {
+      // Mock out dependency.
+      sandbox
+        .stub(uut.bchjs.RawTransactions, 'sendRawTransaction')
+        .resolves('txid')
+
+      const hex = '0200...'
+
+      const result = await uut.broadcastTokenTx(hex)
+
+      assert.equal(result, 'txid')
+    })
+
+    it('should catch and throw errors', async () => {
+      try {
+        // Force an error
+        sandbox
+          .stub(uut.bchjs.RawTransactions, 'sendRawTransaction')
+          .rejects(new Error('test error'))
+
+        const hex = '0200...'
+
+        await uut.broadcastTokenTx(hex)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+
+    it('should catch and throw errors from the full node', async () => {
+      try {
+        // Force an error
+        sandbox
+          .stub(uut.bchjs.RawTransactions, 'sendRawTransaction')
+          .rejects({ error: 'test error' })
+
+        const hex = '0200...'
+
+        await uut.broadcastTokenTx(hex)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#sendTokensFrom145To245', () => {
+    it('should return a txid', async () => {
+      sandbox.stub(uut, 'createTokenTx').resolves('aHexString')
+      sandbox.stub(uut, 'broadcastTokenTx').resolves('aTxidString')
+
+      const obj = {
+        tokenQty: 1
+      }
+
+      const result = await uut.sendTokensFrom145To245(obj)
+
+      assert.equal(result, 'aTxidString')
+    })
+
+    it('should catch and throw errors', async () => {
+      try {
+        // Force and error
+        sandbox.stub(uut, 'createTokenTx').rejects(new Error('test error'))
+
+        const obj = {
+          tokenQty: 1
+        }
+
+        await uut.sendTokensFrom145To245(obj)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#handleMoveTokenError', () => {
+    it('should report the error information', async () => {
+      const errorObj = {
+        attemptNumber: 1,
+        retriesLeft: 5
+      }
+
+      await uut.handleMoveTokenError(errorObj)
+
+      // Simply executing without throwing an error is a pass.
+      assert.isOk(true)
+    })
+  })
+
+  describe('#moveTokens', () => {
+    it('should throw error if parameters are not defined', async () => {
+      try {
+        await uut.moveTokens()
+
+        assert.fail('Unexpected result')
+      } catch (error) {
+        // console.log('Error: ', error)
+        assert.include(error.message, 'obj is undefined')
+      }
+    })
+
+    it('return the result on success', async () => {
+      sandbox.stub(uut, 'sendTokensFrom145To245').resolves('txidString')
+
+      const obj = {
+        tokenQty: 1
+      }
+
+      const result = await uut.moveTokens(obj)
+
+      assert.equal(result, 'txidString')
+    })
+  })
 })

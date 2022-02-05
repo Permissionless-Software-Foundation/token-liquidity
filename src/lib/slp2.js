@@ -7,10 +7,12 @@
 // Public npm libraries
 const BchWallet = require('minimal-slp-wallet/index')
 const BigNumber = require('bignumber.js')
+const pRetry = require('p-retry')
 
 // Local libraries
 const TLUtils = require('./util')
 const wlogger = require('./wlogger')
+const Email = require('./contact')
 
 // This constant saves an API call for each UTXO.
 const TOKEN_DECIMALS = 8
@@ -22,6 +24,7 @@ class SLP {
     // Encapsulate dependencies
     this.config = localConfig
     this.tlUtils = new TLUtils()
+    this.email = new Email()
     this.walletInfo = this.tlUtils.openWallet()
     // console.log(`walletInfo: ${JSON.stringify(this.walletInfo, null, 2)}`);
 
@@ -586,6 +589,106 @@ class SLP {
       // }
 
       throw err
+    }
+  }
+
+  // Broadcast the SLP transaction to the BCH network.
+  async broadcastTokenTx (hex) {
+    try {
+      const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([
+        hex
+      ])
+      wlogger.info(`Transaction ID: ${txidStr}`)
+
+      return txidStr
+    } catch (err) {
+      wlogger.error('Error in slp.js/broadcastTokenTx(): ', err)
+
+      // Handle messages from the full node.
+      if (err.error) throw new Error(err.error)
+
+      throw err
+    }
+  }
+
+  // This function is used by moveTokens() to transfer the tokens from the 145
+  // public address of the app to the 245 address that holds the token UTXOs.
+  async sendTokensFrom145To245 (obj) {
+    try {
+      // Send the user's tokens to the apps token address on the 245
+      // derivation path.
+      const tokenConfig = await this.createTokenTx(
+        this.config.SLP_ADDR,
+        obj.tokenQty,
+        145
+      )
+
+      const tokenTXID = await this.broadcastTokenTx(tokenConfig)
+
+      wlogger.info(
+        `Newly recieved tokens sent to 245 derivation path: ${tokenTXID}`
+      )
+
+      return tokenTXID
+    } catch (err) {
+      wlogger.error('Error in slp.js/sendTokensFrom145To245(): ', err)
+      throw err
+    }
+  }
+
+  async handleMoveTokenError (error) {
+    try {
+      const errorMsg = `Attempt ${error.attemptNumber} to send tokens to the 245 path failed. There are ${error.retriesLeft} retries left. Waiting 4 minutes before trying again.`
+
+      //   failed attempt.
+      console.log(' ')
+      console.log(errorMsg)
+      console.log(' ')
+      wlogger.error(errorMsg)
+
+      if (process.env.TL_ENV !== 'test') {
+        // If the number of retries has been exhausted, send out an email alert.
+        if (!error.retriesLeft && this.config.useEmailAlerts) {
+          const emailObj = {
+            callerMsg: 'lib/slp.js/handleMoveTokenError()',
+            errorObj: error
+          }
+          await this.email.sendTLEmailAlert(emailObj)
+        }
+
+        await this.tlUtils.sleep(60000 * 4)
+      } // Sleep for 4 minutes
+    } catch (err) {
+      console.log(
+        'Unhandled error caught in handleMoveTokenError(). Continuing. Error: ',
+        err
+      )
+    }
+  }
+
+  // This function wraps the create and broadcast token TX functions with the
+  // p-retry library. This is used to move tokens from the 145 path to the 245
+  // path. This will allow it to try mutliple times in the event of an error.
+  async moveTokens (obj) {
+    try {
+      // console.log("obj: ", obj);
+      if (!obj) throw new Error('obj is undefined')
+
+      const result = await pRetry(
+        async () => {
+          return await this.sendTokensFrom145To245(obj)
+        },
+        {
+          onFailedAttempt: this.handleMoveTokenError,
+          retries: 5 // Retry 5 times
+        }
+      )
+
+      return result
+    } catch (error) {
+      wlogger.error('Error in slp.js/moveTokens(): ', error)
+      throw error
+      // console.log(error)
     }
   }
 }
