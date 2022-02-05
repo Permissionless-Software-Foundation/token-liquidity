@@ -185,7 +185,9 @@ class SLP {
       // console.log(`utxosBCH: ${JSON.stringify(utxosBCH, null, 2)}`)
 
       if (utxosBCH.length === 0) {
-        throw new Error('Wallet does not have a BCH UTXO to pay miner fees.')
+        throw new Error(
+          `Address ${cashAddressBCH} does not have a BCH UTXO to pay miner fees.`
+        )
       }
 
       // Choose a BCH UTXO to pay for the transaction.
