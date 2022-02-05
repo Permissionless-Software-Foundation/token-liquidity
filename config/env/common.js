@@ -48,10 +48,12 @@ configOut = {
   BCH245ADDR: process.env.BCH245ADDR,
   SLP_ADDR: process.env.SLP245ADDR, // TODO: Phase out this var name.
   SLP245ADDR: process.env.SLP245ADDR,
-  SLP_TOKEN_ID: process.env.SLP_TOKEN_ID,
+  SLP_TOKEN_ID:
+    process.env.SLP_TOKEN_ID ||
+    'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
 
   // bch-js settings.
-  MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v4/',
+  MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v5/',
   BCHLIB: BCHJS,
 
   blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch'

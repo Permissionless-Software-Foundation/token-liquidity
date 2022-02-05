@@ -13,7 +13,7 @@ describe('#slp', () => {
   describe('#getTokenBalance', () => {
     it('should get token balance', async () => {
       const tokenBalance = await slp.getTokenBalance()
-      // console.log(`tokenBalance: ${JSON.stringify(tokenBalance, null, 2)}`)
+      console.log(`tokenBalance: ${JSON.stringify(tokenBalance, null, 2)}`)
 
       assert.isNumber(tokenBalance)
     })

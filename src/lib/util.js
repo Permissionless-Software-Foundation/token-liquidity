@@ -76,6 +76,11 @@ class TLUtils {
     try {
       let walletInfo
 
+      if (process.env.TL_ENV === 'test') {
+        walletInfo = require(`${__dirname.toString()}/../../test/unit/mocks/fake-wallet.json`)
+        return walletInfo
+      }
+
       if (config.NETWORK === 'testnet') {
         walletInfo = require(`${__dirname.toString()}/../../wallet-test.json`)
       } else {
@@ -90,7 +95,7 @@ class TLUtils {
   }
 
   sleep (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   // Check that all the environment variables are set and 'make sense' before

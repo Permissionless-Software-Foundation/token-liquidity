@@ -22,6 +22,9 @@ const bch = new BCH(config)
 const SLP = require('./slp')
 const slp = new SLP(config)
 
+const SLP2 = require('./slp2')
+const slp2 = new SLP2(config)
+
 // Transactions library
 const Transactions = require('./transactions')
 const txs = new Transactions()
@@ -55,6 +58,7 @@ class TokenLiquidity {
     _this.objProcessTx = {}
 
     this.slp = slp
+    this.slp2 = slp2
     this.bch = bch
     this.txs = txs
     this.tlUtil = tlUtil
@@ -106,7 +110,7 @@ class TokenLiquidity {
       // console.log(`confs: ${JSON.stringify(confs, null, 2)}`)
 
       // Filter out any zero conf transactions.
-      const newTxs = confs.filter(x => x.confirmations > 0)
+      const newTxs = confs.filter((x) => x.confirmations > 0)
       // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
 
       return newTxs
@@ -122,7 +126,9 @@ class TokenLiquidity {
       const { txid, bchBalance, tokenBalance } = inObj
 
       // Data validation
-      if (typeof txid !== 'string') throw new Error('txid needs to be a string')
+      if (typeof txid !== 'string') {
+        throw new Error('txid needs to be a string')
+      }
 
       wlogger.info(`Processing new TXID ${txid}.`)
 
@@ -147,7 +153,7 @@ class TokenLiquidity {
       }
 
       // Process new txid.
-      const isTokenTx = await slp.tokenTxInfo(lastTransaction)
+      const isTokenTx = await slp2.tokenTxInfo(lastTransaction)
       wlogger.debug(`isTokenTx: ${isTokenTx}`)
 
       let newTokenBalance = tokenBalance
@@ -256,22 +262,17 @@ class TokenLiquidity {
 
             // Call a method in the slp library to burn a select amount of tokens
             // instead of sending them to a return address.
-            const hex = await slp.burnTokenTx(retObj.tokensOut)
-            await slp.broadcastTokenTx(hex)
+            const hex = await slp2.burnTokenTx(retObj.tokensOut)
+            await slp2.broadcastTokenTx(hex)
           }
 
           // Normal BCH transaction with no OP_RETURN.
         } else {
           // Send Tokens
-          const tokenHex = await slp.createTokenTx(userAddr, tokensOut, 245)
+          const tokenHex = await slp2.createTokenTx(userAddr, tokensOut, 245)
 
-          await slp.broadcastTokenTx(tokenHex)
+          await slp2.broadcastTokenTx(tokenHex)
         }
-
-        // Send Tokens
-        // const tokenConfig = await slp.createTokenTx(userAddr, retObj.tokensOut, 245)
-
-        // await slp.broadcastTokenTx(tokenConfig)
       }
 
       const retObj = {
@@ -310,7 +311,7 @@ class TokenLiquidity {
 
       const numOfRetries = 5
       const result = await pRetry(() => _this.processTx(obj), {
-        onFailedAttempt: async error => {
+        onFailedAttempt: async (error) => {
           //   failed attempt.
           console.log(' ')
           wlogger.info(
@@ -350,7 +351,7 @@ class TokenLiquidity {
             }
 
             const emailObj = {
-              callerMsg: 'lib/slp.js/handleMoveTokenError()',
+              callerMsg: 'lib/slp2.js/handleMoveTokenError()',
               errorObj: errorStr
             }
             await _this.email.sendTLEmailAlert(emailObj)
@@ -401,12 +402,8 @@ class TokenLiquidity {
   // This function only uses the BCH to calculate the token output.
   exchangeBCHForTokens (obj) {
     try {
-      const {
-        bchIn,
-        bchBalance,
-        bchOriginalBalance,
-        tokenOriginalBalance
-      } = obj
+      const { bchIn, bchBalance, bchOriginalBalance, tokenOriginalBalance } =
+        obj
 
       if (!bchBalance) throw new Error('bchBalance must be defined.')
 
@@ -421,8 +418,10 @@ class TokenLiquidity {
 
       // Use natural logarithm if wallet balance is less than 250 BCH.
       if (bchBalance < bchOriginalBalance) {
-        token1 = -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
-        token2 = -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
+        token1 =
+          -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
+        token2 =
+          -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
       } else {
         // Use linear equation if balance is greater than 250 BCH.
 
@@ -579,7 +578,7 @@ class TokenLiquidity {
 
       wlogger.debug(`Blockchain balance: ${bchBalance} BCH`)
 
-      const tokenBalance = await _this.slp.getTokenBalance()
+      const tokenBalance = await _this.slp2.getTokenBalance()
 
       return {
         bchBalance,

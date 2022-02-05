@@ -1,123 +1,132 @@
 /*
-  This library exports a class of functions for working with SLP tokens.
+  This is a completely refactored version of the original slp.js library.
+  This version uses the psf-slp-indexer and minimal-slp-wallet to implement
+  a lot of the SLP functionality.
 */
 
-'use strict'
-
-// Used for debugging and iterrogating JS objects.
-// const util = require('util')
-// util.inspect.defaultOptions = { depth: 5 }
-
+// Public npm libraries
+const BchWallet = require('minimal-slp-wallet/index')
+const BigNumber = require('bignumber.js')
 const pRetry = require('p-retry')
 
-const config = require('../../config')
-
-// Email contact library.
+// Local libraries
+const TLUtils = require('./util')
+const wlogger = require('./wlogger')
 const Email = require('./contact')
 
-const TLUtils = require('./util')
-const tlUtils = new TLUtils()
-
-// BCH library
-const BCH = require('./bch')
-// const bch = new BCH()
-
-// Winston logger
-const wlogger = require('./wlogger')
-
-let _this
+// This constant saves an API call for each UTXO.
+const TOKEN_DECIMALS = 8
 
 class SLP {
-  constructor (config) {
-    this.config = config
-    // console.log('SLP config: ', this.config)
+  constructor (localConfig = {}) {
+    // console.log(`localConfig: ${JSON.stringify(localConfig, null, 2)}`);
 
-    this.bchjs = new config.BCHLIB({ restURL: config.MAINNET_REST })
-
-    this.bch = new BCH(config)
-    this.tlUtils = tlUtils
+    // Encapsulate dependencies
+    this.config = localConfig
+    this.tlUtils = new TLUtils()
     this.email = new Email()
+    this.walletInfo = this.tlUtils.openWallet()
+    // console.log(`walletInfo: ${JSON.stringify(this.walletInfo, null, 2)}`);
 
-    _this = this
+    // Determine the environment
+    if (!process.env.TL_ENV) process.env.TL_ENV = 'test'
+
+    // Initialize the wallet library
+    const advancedOptions = {
+      restURL: localConfig.MAINNET_REST,
+      apiToken: process.env.BCHJSTOKEN
+    }
+
+    // Disable wallet UTXO retrieval if this is a test.
+    if (process.env.TL_ENV === 'test') {
+      advancedOptions.noUpdate = true
+    }
+
+    // Initialize minimal-slp-wallet
+    this.bchWallet = new BchWallet(this.walletInfo.mnemonic, advancedOptions)
+    this.bchjs = this.bchWallet.bchjs
   }
 
-  // Get the token balance of an address.
+  async waitForWalletInit () {
+    await this.bchWallet.walletInfoPromise
+  }
+
+  // Get the balance of the tokens held by the 245 address.
   async getTokenBalance () {
     try {
-      wlogger.silly('Enter slp.getTokenBalance()')
-      // console.log(`addr: ${addr}`)
+      wlogger.silly('Enter slp2.getTokenBalance()')
 
-      const result = await this.bchjs.SLP.Utils.balancesForAddress(
-        this.config.SLP245ADDR
+      // console.log(`this.config.SLP_TOKEN_ID: ${this.config.SLP_TOKEN_ID}`);
+
+      await this.waitForWalletInit()
+
+      const result = await this.bchWallet.listTokens(this.config.SLP245ADDR)
+      // console.log(`result: ${JSON.stringify(result, null, 2)}`);
+
+      const targetToken = result.filter(
+        (x) => x.tokenId === this.config.SLP_TOKEN_ID
       )
-      wlogger.debug('token balance: ', result)
-      // console.log(`result: ${JSON.stringify(result, null, 2)}`)
 
-      if (result === 'No balance for this address' || result.length === 0) {
-        return 0
-      }
+      if (targetToken.length === 0) return 0
 
-      // Get the token information that matches the token-ID for PSF tokens.
-      const tokenInfo = result.find(
-        token => token.tokenId === this.config.SLP_TOKEN_ID
-      )
-      // console.log(`tokenInfo: ${JSON.stringify(tokenInfo, null, 2)}`)
-
-      return parseFloat(tokenInfo.balance)
+      return targetToken[0].qty
     } catch (err) {
-      wlogger.error('Error in slp.js/getTokenBalance: ', err)
+      wlogger.debug('Error in slp2.js/getTokenBalance: ', err)
       throw err
     }
   }
 
-  // Retrieves SLP TX details from rest.bitcoin.com
+  // Retrieves SLP TX details
   async txDetails (txid) {
     try {
       wlogger.silly('Entering slp.txDetails().')
 
-      const txValid = await this.bchjs.SLP.Utils.validateTxid(txid)
-      // console.log(`txValid: ${JSON.stringify(txValid, null, 2)}`)
+      await this.waitForWalletInit()
+
+      const result = await this.bchjs.PsfSlpIndexer.tx(txid)
+      const txData = result.txData
+      // console.log(`txData: ${JSON.stringify(txData, null, 2)}`);
+
+      const isValidSlp = txData.isValidSlp
 
       // Return false if the tx is not a valid SLP transaction.
-      if (!txValid[0].valid) return false
+      if (!isValidSlp) return false
 
-      // const result = await rp(options)
-      const result = await this.bchjs.SLP.Utils.txDetails(txid)
-      // console.log(`txDetails: ${util.inspect(result)}`)
-
-      return result
+      return txData
     } catch (err) {
       // This catch will activate on non-token txs.
       // Leave this commented out.
-      // wlogger.error(`Error in slp.js/txDetails(): `, err)
-      wlogger.debug('Not a token tx', err)
+      wlogger.debug('Error in slp2.js/txDetails(): ', err)
       throw err
     }
   }
 
   // Returns a number, representing the token quantity if the TX contains a token
   // transfer. Otherwise returns false.
+  // Assumes that the transfer amount is in the second output (vout[1]).
   async tokenTxInfo (txid) {
     try {
       wlogger.silly('Entering slp.tokenTxInfo().')
 
       const result = await this.txDetails(txid)
-      // console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`)
+      // console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`);
 
-      // Exit if token transfer is not the PSF token.
-      if (result.tokenInfo.tokenIdHex !== this.config.SLP_TOKEN_ID) {
-        return false
-      }
+      // Return false if this is not a valid SLP token.
+      if (!result.isValidSlp) return false
 
-      let tokens = result.tokenInfo.sendOutputs[1]
-      tokens = tokens / Math.pow(10, 8)
-      console.log(`tokens transfered: ${tokens}`)
+      // Return false if this is not a token TX for the selected token.
+      if (result.tokenId !== this.config.SLP_TOKEN_ID) return false
 
-      return tokens
+      const tokenQty = result.vout[1].tokenQty
+
+      if (!tokenQty) return false
+
+      return tokenQty
     } catch (err) {
-      // Dev Note: A non-token tx will trigger this error handler.
-
       // console.log(`err: ${util.inspect(err)}`)
+      wlogger.debug('Error in slp2.js/tokenTxInfo(): ', err)
+
+      // Exit quietly and return false.
       return false
     }
   }
@@ -139,7 +148,7 @@ class SLP {
       }
 
       // Open the wallet controlling the tokens
-      const walletInfo = _this.tlUtils.openWallet()
+      const walletInfo = this.tlUtils.openWallet()
       const mnemonic = walletInfo.mnemonic
 
       // root seed buffer
@@ -180,10 +189,10 @@ class SLP {
       }
 
       // Choose a BCH UTXO to pay for the transaction.
-      const bchUtxo = await this.bch.findBiggestUtxo(utxosBCH)
-      // console.log(`bchUtxo: ${JSON.stringify(bchUtxo, null, 2)}`)
+      const bchUtxo = await this.bchjs.Utxo.findBiggestUtxo(utxosBCH)
+      // console.log(`bchUtxo: ${JSON.stringify(bchUtxo, null, 2)}`);
 
-      // Add Insight property that is missing from Blockbook.
+      // Add satoshis property.
       bchUtxo.satoshis = Number(bchUtxo.value)
 
       // END - Get BCH to UTXO to pay transaction
@@ -208,74 +217,41 @@ class SLP {
       //   `${path} cashAddress: ${JSON.stringify(cashAddress, null, 2)}`
       // )
 
-      // Get UTXOs held by this address. Derivation 245
-      const fulcrumResult2 = await this.bchjs.Electrumx.utxo(cashAddress)
-      const utxos = fulcrumResult2.utxos
-      // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)
+      const addrData = await this.bchjs.PsfSlpIndexer.balance(cashAddress)
+      const addrUtxos = addrData.balance.utxos
+      // console.log(`addrUtxos: ${JSON.stringify(addrUtxos, null, 2)}`);
 
-      if (utxos.length === 0) {
+      if (addrUtxos.length === 0) {
         throw new Error('No token UTXOs to spend! Exiting.')
       }
 
-      // Identify the SLP token UTXOs.
-      let tokenUtxos = await this.bchjs.SLP.Utils.tokenUtxoDetails(utxos)
-      // console.log(`tokenUtxos: ${JSON.stringify(tokenUtxos, null, 2)}`)
-
-      // Filter out the token UTXOs that match the user-provided token ID.
-      tokenUtxos = tokenUtxos.filter((utxo, index) => {
-        if (utxo && utxo.tokenId === this.config.SLP_TOKEN_ID && utxo.isValid) {
-          return true
-        }
-
-        return false
-      })
+      let tokenUtxos = addrUtxos.filter(
+        (x) => x.tokenId === this.config.SLP_TOKEN_ID
+      )
       // console.log(
       //   `tokenUtxos (filter 1): ${JSON.stringify(tokenUtxos, null, 2)}`
-      // )
-
-      // Further filter out the invalid token UTXOs
-      for (let i = 0; i < tokenUtxos.length; i++) {
-        const thisUtxos = tokenUtxos[i]
-
-        // Ask the full node to validate the UTXO.
-        // This is caused by stale data in the indexer. Use getTxOut to ask the
-        // full node to validate each UTXO.
-        const isValidUtxo = await this.bchjs.Blockchain.getTxOut(
-          thisUtxos.tx_hash,
-          thisUtxos.tx_pos
-        )
-        // console.log(`isValidUtxo: ${JSON.stringify(isValidUtxo, null, 2)}`)
-
-        // Delete the current element from the array if the UTXO is not valid.
-        if (isValidUtxo === null) {
-          tokenUtxos.splice(i, 1)
-        }
-      }
-      // console.log(
-      //   `tokenUtxos (filter 2): ${JSON.stringify(tokenUtxos, null, 2)}`
-      // )
+      // );
 
       // Bail out if no token UTXOs are found.
       if (tokenUtxos.length === 0) {
         throw new Error('No token UTXOs are available!')
       }
 
-      // Generate the OP_RETURN code.
-      // console.log(`qty: ${qty}`)
-      // const slpSendObj = this.bchjs.SLP.TokenType1.generateSendOpReturn(
-      //   tokenUtxos,
-      //   Number(qty)
-      // )
-      // const slpData = this.bchjs.Script.encode(slpSendObj.script)
-      // console.log(`slpOutputs: ${slpSendObj.outputs}`)
+      // Add missing properties to the UTXOs.
+      tokenUtxos = tokenUtxos.map((x) => {
+        x.tx_hash = x.txid
+        x.tx_pos = x.vout
+        x.decimals = TOKEN_DECIMALS
+        x.tokenQty = new BigNumber(x.qty).dividedBy(10 ** TOKEN_DECIMALS)
+        x.tokenQty = x.tokenQty.toString()
+        x.value = this.bchjs.BitcoinCash.toSatoshi(x.value)
 
-      const {
-        script,
-        outputs
-      } = this.bchjs.SLP.TokenType1.generateSendOpReturn(
-        tokenUtxos,
-        Number(qty)
-      )
+        return x
+      })
+      // console.log(`tokenUtxos (2): ${JSON.stringify(tokenUtxos, null, 2)}`);
+
+      const { script, outputs } =
+        this.bchjs.SLP.TokenType1.generateSendOpReturn(tokenUtxos, Number(qty))
 
       // END - Get token UTXOs for SLP transaction
 
@@ -297,7 +273,10 @@ class SLP {
 
       // add each token UTXO as an input.
       for (let i = 0; i < tokenUtxos.length; i++) {
-        transactionBuilder.addInput(tokenUtxos[i].tx_hash, tokenUtxos[i].tx_pos)
+        transactionBuilder.addInput(
+          tokenUtxos[i].tx_hash,
+          tokenUtxos[i].tx_pos
+        )
       }
 
       // TODO: Create fee calculator like slpjs
@@ -382,8 +361,8 @@ class SLP {
 
       return hex
     } catch (err) {
-      wlogger.error(`Error in createTokenTx: ${err.message}`, err)
-      console.error('Error in createTokenTx(): ', err)
+      wlogger.debug(`Error in createTokenTx: ${err.message}`, err)
+      // console.error("Error in createTokenTx(): ", err);
 
       // if (err.message) throw new Error(err.message)
       // else throw new Error('Error in createTokenTx()')
@@ -400,7 +379,7 @@ class SLP {
       }
 
       // Open the wallet controlling the tokens
-      const walletInfo = _this.tlUtils.openWallet()
+      const walletInfo = this.tlUtils.openWallet()
       const mnemonic = walletInfo.mnemonic
 
       // root seed buffer
@@ -439,7 +418,7 @@ class SLP {
       }
 
       // Choose a BCH UTXO to pay for the transaction.
-      const bchUtxo = await this.bch.findBiggestUtxo(utxosBCH)
+      const bchUtxo = await this.bchjs.Utxo.findBiggestUtxo(utxosBCH)
       // console.log(`bchUtxo: ${JSON.stringify(bchUtxo, null, 2)}`)
 
       // Add Insight property that is missing from Blockbook.
@@ -465,55 +444,38 @@ class SLP {
       // const slpAddress = this.bchjs.HDNode.toSLPAddress(change)
       // console.log(`cashAddress: ${JSON.stringify(cashAddress, null, 2)}`)
 
-      // Get UTXOs held by this address. Derivation 245
-      // const utxos = await this.bchjs.Blockbook.utxo(cashAddress)
-      const fulcrumResult2 = await this.bchjs.Electrumx.utxo(cashAddress)
-      const utxos = fulcrumResult2.utxos
-      // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)
+      const addrData = await this.bchjs.PsfSlpIndexer.balance(cashAddress)
+      const addrUtxos = addrData.balance.utxos
+      // console.log(`addrUtxos: ${JSON.stringify(addrUtxos, null, 2)}`);
 
-      if (utxos.length === 0) {
+      if (addrUtxos.length === 0) {
         throw new Error('No token UTXOs to spend! Exiting.')
       }
 
-      // Identify the SLP token UTXOs.
-      let tokenUtxos = await this.bchjs.SLP.Utils.tokenUtxoDetails(utxos)
-      // console.log(`tokenUtxos: ${JSON.stringify(tokenUtxos, null, 2)}`)
-
-      // Filter out the token UTXOs that match the user-provided token ID.
-      tokenUtxos = tokenUtxos.filter((utxo, index) => {
-        if (utxo && utxo.tokenId === this.config.SLP_TOKEN_ID && utxo.isValid) {
-          return true
-        }
-
-        return false
-      })
+      let tokenUtxos = addrUtxos.filter(
+        (x) => x.tokenId === this.config.SLP_TOKEN_ID
+      )
       // console.log(
       //   `tokenUtxos (filter 1): ${JSON.stringify(tokenUtxos, null, 2)}`
       // )
-
-      // Further filter out the invalid token UTXOs.
-      // This is caused by stale data in the indexer. Use getTxOut to ask the
-      // full node to validate each UTXO.
-      for (let i = 0; i < tokenUtxos.length; i++) {
-        const thisUtxos = tokenUtxos[i]
-
-        // Ask the full node to validate the UTXO.
-        const isValidUtxo = await this.bchjs.Blockchain.getTxOut(
-          thisUtxos.tx_hash,
-          thisUtxos.tx_pos
-        )
-        // console.log(`isValidUtxo: ${JSON.stringify(isValidUtxo, null, 2)}`)
-
-        // Delete the current element from the array if the UTXO is not valid.
-        if (isValidUtxo === null) {
-          tokenUtxos.splice(i, 1)
-        }
-      }
 
       // Bail out if no token UTXOs are found.
       if (tokenUtxos.length === 0) {
         throw new Error('No token UTXOs are available!')
       }
+
+      // Add missing properties to the UTXOs.
+      tokenUtxos = tokenUtxos.map((x) => {
+        x.tx_hash = x.txid
+        x.tx_pos = x.vout
+        x.decimals = TOKEN_DECIMALS
+        x.tokenQty = new BigNumber(x.qty).dividedBy(10 ** TOKEN_DECIMALS)
+        x.tokenQty = x.tokenQty.toString()
+        x.value = this.bchjs.BitcoinCash.toSatoshi(x.value)
+
+        return x
+      })
+      // console.log(`tokenUtxos (2): ${JSON.stringify(tokenUtxos, null, 2)}`);
 
       // Generate the OP_RETURN code.
       // console.log(`burnQty: ${burnQty}`)
@@ -530,10 +492,7 @@ class SLP {
       // BEGIN transaction construction.
 
       // instance of transaction builder
-      let transactionBuilder
-      if (this.config.NETWORK === 'mainnet') {
-        transactionBuilder = new this.bchjs.TransactionBuilder()
-      } else transactionBuilder = new this.bchjs.TransactionBuilder('testnet')
+      const transactionBuilder = new this.bchjs.TransactionBuilder()
 
       // Add the BCH UTXO as input to pay for the transaction.
       const originalAmount = Number(bchUtxo.value)
@@ -541,7 +500,10 @@ class SLP {
 
       // add each token UTXO as an input.
       for (let i = 0; i < tokenUtxos.length; i++) {
-        transactionBuilder.addInput(tokenUtxos[i].tx_hash, tokenUtxos[i].tx_pos)
+        transactionBuilder.addInput(
+          tokenUtxos[i].tx_hash,
+          tokenUtxos[i].tx_pos
+        )
       }
 
       // TODO: Create fee calculator like slpjs
@@ -574,13 +536,13 @@ class SLP {
 
       // Send dust transaction representing tokens being sent.
       transactionBuilder.addOutput(
-        this.bchjs.SLP.Address.toLegacyAddress(this.config.SLP_ADDR),
+        this.bchjs.Address.toLegacyAddress(cashAddress),
         546
       )
 
       // Last output: send the BCH change back to the wallet.
       transactionBuilder.addOutput(
-        this.bchjs.Address.toLegacyAddress(this.config.BCH_ADDR),
+        this.bchjs.Address.toLegacyAddress(cashAddressBCH),
         remainder
       )
 
@@ -619,7 +581,7 @@ class SLP {
       return hex
     } catch (err) {
       // console.error(err)
-      wlogger.error(`Error in burnTokenTx: ${err.message}`, err)
+      wlogger.debug(`Error in burnTokenTx: ${err.message}`, err)
       // if (err.message) throw new Error(err.message)
       // else {
       //   console.log('Error in slp.js/burnTokenTx: ', err)
@@ -633,7 +595,9 @@ class SLP {
   // Broadcast the SLP transaction to the BCH network.
   async broadcastTokenTx (hex) {
     try {
-      const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([hex])
+      const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([
+        hex
+      ])
       wlogger.info(`Transaction ID: ${txidStr}`)
 
       return txidStr
@@ -647,33 +611,28 @@ class SLP {
     }
   }
 
-  // This function wraps the create and broadcast token TX functions with the
-  // p-retry library. This is used to move tokens from the 145 path to the 245
-  // path. This will allow it to try mutliple times in the event of an error.
-  async moveTokens (obj) {
+  // This function is used by moveTokens() to transfer the tokens from the 145
+  // public address of the app to the 245 address that holds the token UTXOs.
+  async sendTokensFrom145To245 (obj) {
     try {
-      // Update global var with obj
-      // This is because the function that executes the p-retry library
-      // cannot pass attributes as parameters
-      // _this.setObjProcessTx(obj)
-
-      if (!obj) throw new Error('obj is undefined')
-
-      const result = await pRetry(
-        async () => {
-          return await _this.sendTokensFrom145To245(obj)
-        },
-        {
-          onFailedAttempt: this.handleMoveTokenError,
-          retries: 5 // Retry 5 times
-        }
+      // Send the user's tokens to the apps token address on the 245
+      // derivation path.
+      const tokenConfig = await this.createTokenTx(
+        this.config.SLP_ADDR,
+        obj.tokenQty,
+        145
       )
 
-      return result
-    } catch (error) {
-      wlogger.error('Error in slp.js/moveTokens(): ', error)
-      throw error
-      // console.log(error)
+      const tokenTXID = await this.broadcastTokenTx(tokenConfig)
+
+      wlogger.info(
+        `Newly recieved tokens sent to 245 derivation path: ${tokenTXID}`
+      )
+
+      return tokenTXID
+    } catch (err) {
+      wlogger.error('Error in slp.js/sendTokensFrom145To245(): ', err)
+      throw err
     }
   }
 
@@ -689,15 +648,15 @@ class SLP {
 
       if (process.env.TL_ENV !== 'test') {
         // If the number of retries has been exhausted, send out an email alert.
-        if (!error.retriesLeft && config.useEmailAlerts) {
+        if (!error.retriesLeft && this.config.useEmailAlerts) {
           const emailObj = {
             callerMsg: 'lib/slp.js/handleMoveTokenError()',
             errorObj: error
           }
-          await _this.email.sendTLEmailAlert(emailObj)
+          await this.email.sendTLEmailAlert(emailObj)
         }
 
-        await _this.tlUtils.sleep(60000 * 4)
+        await this.tlUtils.sleep(60000 * 4)
       } // Sleep for 4 minutes
     } catch (err) {
       console.log(
@@ -707,28 +666,29 @@ class SLP {
     }
   }
 
-  // This function is used by moveTokens() to transfer the tokens from the 145
-  // public address of the app to the 245 address that holds the token UTXOs.
-  async sendTokensFrom145To245 (obj) {
+  // This function wraps the create and broadcast token TX functions with the
+  // p-retry library. This is used to move tokens from the 145 path to the 245
+  // path. This will allow it to try mutliple times in the event of an error.
+  async moveTokens (obj) {
     try {
-      // Send the user's tokens to the apps token address on the 245
-      // derivation path.
-      const tokenConfig = await _this.createTokenTx(
-        this.config.SLP_ADDR,
-        obj.tokenQty,
-        145
+      // console.log("obj: ", obj);
+      if (!obj) throw new Error('obj is undefined')
+
+      const result = await pRetry(
+        async () => {
+          return await this.sendTokensFrom145To245(obj)
+        },
+        {
+          onFailedAttempt: this.handleMoveTokenError,
+          retries: 5 // Retry 5 times
+        }
       )
 
-      const tokenTXID = await _this.broadcastTokenTx(tokenConfig)
-
-      wlogger.info(
-        `Newly recieved tokens sent to 245 derivation path: ${tokenTXID}`
-      )
-
-      return tokenTXID
-    } catch (err) {
-      wlogger.error('Error in slp.js/sendTokensFrom145To245(): ', err)
-      throw err
+      return result
+    } catch (error) {
+      wlogger.error('Error in slp.js/moveTokens(): ', error)
+      throw error
+      // console.log(error)
     }
   }
 }

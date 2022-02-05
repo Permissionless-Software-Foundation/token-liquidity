@@ -272,8 +272,7 @@ describe('#token-liquidity', () => {
       try {
         // console.log('init test')
         const obj = {
-          txid:
-            '14df82e3ec54fa0227531309f7189ed695bafad6f5062407d3a528fbeddc4a09',
+          txid: '14df82e3ec54fa0227531309f7189ed695bafad6f5062407d3a528fbeddc4a09',
           bchBalance: 12.01044695,
           tokenBalance: 1
         }
@@ -369,7 +368,9 @@ describe('#token-liquidity', () => {
         try {
           sandbox
             .stub(lib, 'got')
-            .throws(new Error('Coinbase exchange rate could not be retrieved!'))
+            .throws(
+              new Error('Coinbase exchange rate could not be retrieved!')
+            )
 
           await lib.getCoinbasePrice()
           assert.fail('Unexpected result')
@@ -438,7 +439,9 @@ describe('#token-liquidity', () => {
       it('should get the current price from the local state if an error is thrown', async () => {
         try {
           // Force an error with Coinbase.
-          sandbox.stub(lib, 'getCoinbasePrice').rejects(new Error('test error'))
+          sandbox
+            .stub(lib, 'getCoinbasePrice')
+            .rejects(new Error('test error'))
 
           // Force an error with Coinex
           sandbox.stub(lib, 'getCoinexPrice').rejects(new Error('test error'))
@@ -456,7 +459,9 @@ describe('#token-liquidity', () => {
       it('should get the current price from the local state if a second error is thrown', async () => {
         try {
           // Force an error with Coinbase.
-          sandbox.stub(lib, 'getCoinbasePrice').rejects(new Error('test error'))
+          sandbox
+            .stub(lib, 'getCoinbasePrice')
+            .rejects(new Error('test error'))
 
           // Force an error with Coinex
           sandbox.stub(lib, 'getCoinexPrice').rejects(new Error('test error'))
@@ -502,7 +507,7 @@ describe('#token-liquidity', () => {
       it('should get the current blockchain balances', async () => {
         try {
           sandbox.stub(lib.bch, 'getBCHBalance').resolves(12.44768481)
-          sandbox.stub(lib.slp, 'getTokenBalance').resolves(12.44768481)
+          sandbox.stub(lib.slp2, 'getTokenBalance').resolves(12.44768481)
 
           const result = await lib.getBlockchainBalances()
           assert.property(result, 'bchBalance')
@@ -516,7 +521,9 @@ describe('#token-liquidity', () => {
 
       it('should handle error if an error is thrown getting bch balance', async () => {
         try {
-          sandbox.stub(lib.bch, 'getBCHBalance').throws(new Error('test error'))
+          sandbox
+            .stub(lib.bch, 'getBCHBalance')
+            .throws(new Error('test error'))
 
           await lib.getBlockchainBalances()
           assert.fail('Unexpected result')
@@ -529,7 +536,7 @@ describe('#token-liquidity', () => {
         try {
           sandbox.stub(lib.bch, 'getBCHBalance').resolves(12.44768481)
           sandbox
-            .stub(lib.slp, 'getTokenBalance')
+            .stub(lib.slp2, 'getTokenBalance')
             .throws(new Error('test error'))
 
           await lib.getBlockchainBalances()
