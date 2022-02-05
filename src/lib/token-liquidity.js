@@ -212,6 +212,8 @@ class TokenLiquidity {
         }
 
         if (bchQty < 0.00000547) {
+          console.log(`BCH_ADDR1: ${BCH_ADDR1}`)
+
           throw new Error(
             "Dust recieved. This is probably a token tx that SLPDB doesn't know about."
           )
