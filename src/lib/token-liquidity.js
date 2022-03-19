@@ -681,9 +681,14 @@ class TokenLiquidity {
       wlogger.error('Error in token-liquidity.js/getPrice(): ', err)
       // throw err
 
-      // Return the price from the state.
-      const state = _this.tlUtil.readState()
-      return state.usdPerBCH
+      try {
+        // Return the price from the state.
+        const state = _this.tlUtil.readState()
+        return state.usdPerBCH
+      } catch(err) {
+        return 300
+      }
+
     }
   }
 }
