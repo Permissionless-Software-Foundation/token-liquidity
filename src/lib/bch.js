@@ -168,12 +168,15 @@ class BCH {
 
       const walletInfo = this.tlUtils.openWallet()
 
-      const addrDetails = await this.getBCHBalance(this.config.BCH_ADDR, false)
+      const addrDetails = await this.getBCHBalance(
+        this.config.BCH145ADDR,
+        false
+      )
       // wlogger.debug(`addrDetails: ${JSON.stringify(addrDetails, null, 2)}`)
 
       const balance = addrDetails
       wlogger.verbose(
-        `Balance of sending address ${this.config.BCH_ADDR} is ${balance} BCH.`
+        `Balance of sending address ${this.config.BCH145ADDR} is ${balance} BCH.`
       )
 
       if (balance <= 0.0) {
@@ -187,7 +190,7 @@ class BCH {
       }
 
       const SEND_ADDR_LEGACY = this.bchjs.Address.toLegacyAddress(
-        this.config.BCH_ADDR
+        this.config.BCH145ADDR
       )
       const RECV_ADDR_LEGACY = this.bchjs.Address.toLegacyAddress(RECV_ADDR)
       wlogger.debug(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`)
@@ -195,7 +198,7 @@ class BCH {
 
       // const utxos = await this.bchjs.Blockbook.utxo(this.config.BCH_ADDR)
       const fulcrumResult = await this.bchjs.Electrumx.utxo(
-        this.config.BCH_ADDR
+        this.config.BCH145ADDR
       )
       const utxos = fulcrumResult.utxos
       // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)
@@ -207,12 +210,7 @@ class BCH {
       // utxo.value = utxo.amount
 
       // instance of transaction builder
-      let transactionBuilder
-      if (this.config.NETWORK === 'testnet') {
-        transactionBuilder = new this.bchjs.TransactionBuilder('testnet')
-      } else {
-        transactionBuilder = new this.bchjs.TransactionBuilder()
-      }
+      const transactionBuilder = new this.bchjs.TransactionBuilder()
 
       // const satoshisToSend = 1000;
       const originalAmount = utxo.value
@@ -247,7 +245,7 @@ class BCH {
         satoshisToSend
       )
       transactionBuilder.addOutput(
-        this.bchjs.Address.toLegacyAddress(this.config.BCH_ADDR),
+        this.bchjs.Address.toLegacyAddress(this.config.BCH145ADDR),
         remainder
       )
 

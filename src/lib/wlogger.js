@@ -47,11 +47,13 @@ const wlogger = winston.createLogger({
 // if (process.env.APP_ENV !== 'test') {
 
 if (process.env.TEST_ENV !== 'unit') {
-  wlogger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-    level: 'verbose'
-    // level: 'debug'
-  }))
+  wlogger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+      // level: 'verbose'
+      level: 'debug'
+    })
+  )
 }
 
 module.exports = wlogger

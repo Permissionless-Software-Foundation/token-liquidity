@@ -413,16 +413,12 @@ describe('#token-liquidity', () => {
 
     describe('#getPrice()', () => {
       it('should get the current price from coinbase api', async () => {
-        try {
-          sandbox.stub(lib, 'getCoinbasePrice').resolves(540.0)
+        sandbox.stub(lib, 'getCoinbasePrice').resolves(540.0)
 
-          // sandbox.stub(lib.bch, 'getBCHBalance').resolves(12.44768481)
+        // sandbox.stub(lib.bch, 'getBCHBalance').resolves(12.44768481)
 
-          const result = await lib.getPrice()
-          assert.isNumber(result)
-        } catch (error) {
-          assert.fail('Unexpected result')
-        }
+        const result = await lib.getPrice()
+        assert.isNumber(result)
       })
 
       it('should get price from Coinex if Coinbase fails', async () => {

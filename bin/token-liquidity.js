@@ -36,9 +36,10 @@ try {
   process.exit(1)
 }
 
-const SLP = require('../src/lib/slp')
+// const SLP = require('../src/lib/slp')
+const SLP2 = require('../src/lib/slp2')
 const BCH = require('../src/lib/bch')
-let slp, bch
+let bch, slp2
 // let slp = new SLP(config)
 // let bch = new BCH(config)
 
@@ -78,7 +79,8 @@ async function startTokenLiquidity () {
     // Get the JWT token needed to interact with the FullStack.cash API.
     await getJwt()
     bch = new BCH(config) // Reinitialize bchjs with the JWT token.
-    slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+    // slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+    slp2 = new SLP2(config)
 
     // Get BCH balance.
     const addressBalance = await bch.getBCHBalance(config.BCH_ADDR, false)
@@ -98,7 +100,7 @@ async function startTokenLiquidity () {
     // console.log(`seenTxs: ${JSON.stringify(seenTxs, null, 2)}`)
 
     // Get SLP token balance
-    tokenBalance = await slp.getTokenBalance(config.SLP_ADDR)
+    tokenBalance = await slp2.getTokenBalance(config.SLP_ADDR)
     wlogger.info(
       `SLP token address ${config.SLP_ADDR} has a balance of: ${tokenBalance} PSF`
     )
@@ -155,7 +157,7 @@ async function startTokenLiquidity () {
         wlogger.info('Updating FullStack.cash JWT token')
         await getJwt()
         bch = new BCH(config) // Reinitialize bchjs with the JWT token.
-        slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+        // slp = new SLP(config) // Reinitialize bchjs with the JWT token.
       } catch (err) {
         wlogger.error('Error trying to renew JWT token: ', err)
       }
@@ -249,7 +251,7 @@ async function processingLoop (seenTxs) {
         await sleep(60000 * 2)
 
         const obj = { tokenQty: result.tokenQty }
-        await queue.add(() => slp.moveTokens(obj))
+        await queue.add(() => slp2.moveTokens(obj))
       }
 
       // Update the app balances. This temporarily updates the app balances until
@@ -365,7 +367,7 @@ async function checkBalances () {
   try {
     const state = tlUtil.readState()
     const effTokenBal = lib.getEffectiveTokenBalance(state.bchBalance)
-    const realTokenBal = await slp.getTokenBalance()
+    const realTokenBal = await slp2.getTokenBalance()
 
     wlogger.info(
       `usdPerBCH: ${state.usdPerBCH}, ` +

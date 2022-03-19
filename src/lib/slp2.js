@@ -109,17 +109,29 @@ class SLP {
       wlogger.silly('Entering slp.tokenTxInfo().')
 
       const result = await this.txDetails(txid)
-      // console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`);
+      console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`)
 
       // Return false if this is not a valid SLP token.
-      if (!result.isValidSlp) return false
+      if (!result.isValidSlp) {
+        wlogger.debug(`TX is not a valid SLP tx: ${txid}`)
+        return false
+      }
 
       // Return false if this is not a token TX for the selected token.
-      if (result.tokenId !== this.config.SLP_TOKEN_ID) return false
+      if (result.tokenId !== this.config.SLP_TOKEN_ID) {
+        console.log(
+          `Incoming token with token ID ${result.tokenId} does not match PSF token ID of ${this.config.SLP_TOKEN_ID}`
+        )
+        return false
+      }
 
       const tokenQty = result.vout[1].tokenQty
+      console.log(`tokenQty: ${tokenQty}`)
 
-      if (!tokenQty) return false
+      if (!tokenQty) {
+        wlogger.debug('Token Qty is 0 or falsy. Not valid SLP tx.')
+        return false
+      }
 
       return tokenQty
     } catch (err) {
@@ -185,7 +197,9 @@ class SLP {
       // console.log(`utxosBCH: ${JSON.stringify(utxosBCH, null, 2)}`)
 
       if (utxosBCH.length === 0) {
-        throw new Error('Wallet does not have a BCH UTXO to pay miner fees.')
+        throw new Error(
+          `Address ${cashAddressBCH} does not have a BCH UTXO to pay miner fees.`
+        )
       }
 
       // Choose a BCH UTXO to pay for the transaction.

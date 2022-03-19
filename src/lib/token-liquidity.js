@@ -212,6 +212,8 @@ class TokenLiquidity {
         }
 
         if (bchQty < 0.00000547) {
+          console.log(`BCH_ADDR1: ${BCH_ADDR1}`)
+
           throw new Error(
             "Dust recieved. This is probably a token tx that SLPDB doesn't know about."
           )
@@ -592,7 +594,7 @@ class TokenLiquidity {
 
   async getCoinbasePrice () {
     try {
-      const rawRate = await _this.got(
+      const rawRate = await this.got(
         'https://api.coinbase.com/v2/exchange-rates?currency=BCH'
       )
 
@@ -679,9 +681,13 @@ class TokenLiquidity {
       wlogger.error('Error in token-liquidity.js/getPrice(): ', err)
       // throw err
 
-      // Return the price from the state.
-      const state = _this.tlUtil.readState()
-      return state.usdPerBCH
+      try {
+        // Return the price from the state.
+        const state = _this.tlUtil.readState()
+        return state.usdPerBCH
+      } catch (err) {
+        return 300
+      }
     }
   }
 }
