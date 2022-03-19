@@ -685,10 +685,9 @@ class TokenLiquidity {
         // Return the price from the state.
         const state = _this.tlUtil.readState()
         return state.usdPerBCH
-      } catch(err) {
+      } catch (err) {
         return 300
       }
-
     }
   }
 }
