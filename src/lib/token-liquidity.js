@@ -594,7 +594,7 @@ class TokenLiquidity {
 
   async getCoinbasePrice () {
     try {
-      const rawRate = await _this.got(
+      const rawRate = await this.got(
         'https://api.coinbase.com/v2/exchange-rates?currency=BCH'
       )
 
