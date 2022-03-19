@@ -36,10 +36,10 @@ try {
   process.exit(1)
 }
 
-const SLP = require('../src/lib/slp')
+// const SLP = require('../src/lib/slp')
 const SLP2 = require('../src/lib/slp2')
 const BCH = require('../src/lib/bch')
-let slp, bch, slp2
+let bch, slp2
 // let slp = new SLP(config)
 // let bch = new BCH(config)
 
@@ -79,7 +79,7 @@ async function startTokenLiquidity () {
     // Get the JWT token needed to interact with the FullStack.cash API.
     await getJwt()
     bch = new BCH(config) // Reinitialize bchjs with the JWT token.
-    slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+    // slp = new SLP(config) // Reinitialize bchjs with the JWT token.
     slp2 = new SLP2(config)
 
     // Get BCH balance.
@@ -157,7 +157,7 @@ async function startTokenLiquidity () {
         wlogger.info('Updating FullStack.cash JWT token')
         await getJwt()
         bch = new BCH(config) // Reinitialize bchjs with the JWT token.
-        slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+        // slp = new SLP(config) // Reinitialize bchjs with the JWT token.
       } catch (err) {
         wlogger.error('Error trying to renew JWT token: ', err)
       }
@@ -251,7 +251,7 @@ async function processingLoop (seenTxs) {
         await sleep(60000 * 2)
 
         const obj = { tokenQty: result.tokenQty }
-        await queue.add(() => slp.moveTokens(obj))
+        await queue.add(() => slp2.moveTokens(obj))
       }
 
       // Update the app balances. This temporarily updates the app balances until

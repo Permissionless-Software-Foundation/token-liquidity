@@ -147,7 +147,7 @@ describe('#slp2.js', () => {
         // console.log(`err.message: ${err.message}`)
         assert.include(
           err.message,
-          'Wallet does not have a BCH UTXO to pay miner fees'
+          'does not have a BCH UTXO to pay miner fees'
         )
       }
     })
