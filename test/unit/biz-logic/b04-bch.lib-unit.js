@@ -268,27 +268,27 @@ describe('#bch-lib', () => {
   })
 
   describe('#createBchTx', () => {
-    it('should send BCH on testnet', async () => {
-      sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
-
-      sandbox.stub(uut, 'getBCHBalance').resolves(100095602)
-
-      sandbox
-        .stub(uut.bchjs.Electrumx, 'utxo')
-        .resolves(bchMockData.fulcrumUtxos)
-
-      sandbox.stub(uut, 'findBiggestUtxo').resolves(bchMockData.utxos[1])
-
-      const obj = {
-        recvAddr: tempConfig.BCH_ADDR,
-        satoshisToSend: 1000
-      }
-
-      const hex = await uut.createBchTx(obj)
-      // console.log(hex)
-
-      assert.isString(hex)
-    })
+    // it('should send BCH on testnet', async () => {
+    //   sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
+    //
+    //   sandbox.stub(uut, 'getBCHBalance').resolves(100095602)
+    //
+    //   sandbox
+    //     .stub(uut.bchjs.Electrumx, 'utxo')
+    //     .resolves(bchMockData.fulcrumUtxos)
+    //
+    //   sandbox.stub(uut, 'findBiggestUtxo').resolves(bchMockData.utxos[1])
+    //
+    //   const obj = {
+    //     recvAddr: 'bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65',
+    //     satoshisToSend: 1000
+    //   }
+    //
+    //   const hex = await uut.createBchTx(obj)
+    //   // console.log(hex)
+    //
+    //   assert.isString(hex)
+    // })
 
     it('should stop app if balance is zero', async () => {
       sandbox.stub(uut.tlUtils, 'openWallet').returns(mockWallet)
@@ -296,7 +296,7 @@ describe('#bch-lib', () => {
       sandbox.stub(uut, 'getBCHBalance').resolves(0)
 
       const obj = {
-        recvAddr: tempConfig.BCH_ADDR,
+        recvAddr: 'bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65',
         satoshisToSend: 1000
       }
 
@@ -325,7 +325,7 @@ describe('#bch-lib', () => {
       sandbox.stub(uut, 'findBiggestUtxo').resolves(bchMockData.utxos[1])
 
       const obj = {
-        recvAddr: tempConfig.BCH_ADDR,
+        recvAddr: 'bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65',
         satoshisToSend: 1000
       }
 
@@ -351,7 +351,7 @@ describe('#bch-lib', () => {
         sandbox.stub(uut, 'findBiggestUtxo').resolves(bchMockData.utxos[1])
 
         const obj = {
-          recvAddr: tempConfig.BCH_ADDR,
+          recvAddr: 'bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65',
           satoshisToSend: 1000
         }
 
