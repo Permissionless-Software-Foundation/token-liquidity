@@ -42,12 +42,12 @@ configOut = {
     : 'Generic Token Liquidity App',
 
   // Required BCH variables.
-  BCH_ADDR: process.env.BCH145ADDR, // TODO: Phase out this var name.
-  BCH145ADDR: process.env.BCH145ADDR,
-  SLP145ADDR: process.env.SLP145ADDR,
-  BCH245ADDR: process.env.BCH245ADDR,
-  SLP_ADDR: process.env.SLP245ADDR, // TODO: Phase out this var name.
-  SLP245ADDR: process.env.SLP245ADDR,
+  BCH_ADDR: process.env.BCH145ADDR ? process.env.BCH145ADDR : "bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65",
+  BCH145ADDR: process.env.BCH145ADDR ? process.env.BCH145ADDR : "bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65",
+  SLP145ADDR: process.env.SLP145ADDR ? process.env.SLP145ADDR : "simpleledger:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqvd9pdcy2",
+  BCH245ADDR: process.env.BCH245ADDR ? process.env.BCH245ADDR : "bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65",
+  SLP_ADDR: process.env.SLP245ADDR ? process.env.SLP245ADDR : "simpleledger:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqvd9pdcy2",
+  SLP245ADDR: process.env.SLP245ADDR ? process.env.SLP245ADDR : "simpleledger:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqvd9pdcy2",
   SLP_TOKEN_ID:
     process.env.SLP_TOKEN_ID ||
     'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',

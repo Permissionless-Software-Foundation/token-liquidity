@@ -109,7 +109,7 @@ class SLP {
       wlogger.silly('Entering slp.tokenTxInfo().')
 
       const result = await this.txDetails(txid)
-      console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`)
+      // console.log(`tokenTxInfo: ${JSON.stringify(result, null, 2)}`)
 
       // Return false if this is not a valid SLP token.
       if (!result.isValidSlp) {
@@ -167,10 +167,7 @@ class SLP {
       const rootSeed = await this.bchjs.Mnemonic.toSeed(mnemonic)
 
       // master HDNode
-      let masterHDNode
-      if (this.config.NETWORK === 'mainnet') {
-        masterHDNode = this.bchjs.HDNode.fromSeed(rootSeed)
-      } else masterHDNode = this.bchjs.HDNode.fromSeed(rootSeed, 'testnet') // Testnet
+      const masterHDNode = this.bchjs.HDNode.fromSeed(rootSeed)
 
       // BEGIN - Get BCH to UTXO to pay transaction
 
@@ -598,7 +595,7 @@ class SLP {
       wlogger.debug(`Error in burnTokenTx: ${err.message}`, err)
       // if (err.message) throw new Error(err.message)
       // else {
-      //   console.log('Error in slp.js/burnTokenTx: ', err)
+      //   console.log('Error in slp2.jsburnTokenTx: ', err)
       //   throw new Error('Error in burnTokenTx')
       // }
 
@@ -609,6 +606,7 @@ class SLP {
   // Broadcast the SLP transaction to the BCH network.
   async broadcastTokenTx (hex) {
     try {
+      // console.log(`broadcasting this transaction: ${hex}`)
       const txidStr = await this.bchjs.RawTransactions.sendRawTransaction([
         hex
       ])
@@ -616,7 +614,7 @@ class SLP {
 
       return txidStr
     } catch (err) {
-      wlogger.error('Error in slp.js/broadcastTokenTx(): ', err)
+      wlogger.error('Error in slp2.js/broadcastTokenTx(): ', err)
 
       // Handle messages from the full node.
       if (err.error) throw new Error(err.error)
@@ -645,7 +643,7 @@ class SLP {
 
       return tokenTXID
     } catch (err) {
-      wlogger.error('Error in slp.js/sendTokensFrom145To245(): ', err)
+      wlogger.error('Error in slp2.js/sendTokensFrom145To245(): ', err)
       throw err
     }
   }
@@ -664,12 +662,13 @@ class SLP {
         // If the number of retries has been exhausted, send out an email alert.
         if (!error.retriesLeft && this.config.useEmailAlerts) {
           const emailObj = {
-            callerMsg: 'lib/slp.js/handleMoveTokenError()',
+            callerMsg: 'lib/slp2.jshandleMoveTokenError()',
             errorObj: error
           }
           await this.email.sendTLEmailAlert(emailObj)
         }
 
+        console.log('this.tlUtils: ', this.tlUtils)
         await this.tlUtils.sleep(60000 * 4)
       } // Sleep for 4 minutes
     } catch (err) {
@@ -700,7 +699,7 @@ class SLP {
 
       return result
     } catch (error) {
-      wlogger.error('Error in slp.js/moveTokens(): ', error)
+      wlogger.error('Error in slp2.js/moveTokens(): ', error)
       throw error
       // console.log(error)
     }

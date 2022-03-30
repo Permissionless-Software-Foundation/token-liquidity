@@ -19,8 +19,8 @@ const BCH = require('./bch')
 const bch = new BCH(config)
 
 // SLP Token library
-const SLP = require('./slp')
-const slp = new SLP(config)
+// const SLP = require('./slp')
+// const slp = new SLP(config)
 
 const SLP2 = require('./slp2')
 const slp2 = new SLP2(config)
@@ -57,7 +57,7 @@ class TokenLiquidity {
     _this = this
     _this.objProcessTx = {}
 
-    this.slp = slp
+    // this.slp = slp
     this.slp2 = slp2
     this.bch = bch
     this.txs = txs
