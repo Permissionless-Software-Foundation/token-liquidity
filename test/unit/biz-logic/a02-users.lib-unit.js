@@ -56,7 +56,7 @@ describe('#users', () => {
       } catch (err) {
         // console.log(err)
         // assert.equal(err.status, 422)
-        assert.include(err.message, 'Cannot read property')
+        assert.include(err.message, 'Cannot read')
       }
     })
 
@@ -231,7 +231,7 @@ describe('#users', () => {
         assert.fail('Unexpected code path')
       } catch (err) {
         // console.log(err)
-        assert.include(err.message, 'Cannot read property')
+        assert.include(err.message, 'Cannot read')
       }
     })
 
@@ -344,7 +344,7 @@ describe('#users', () => {
         assert.fail('Unexpected code path.')
       } catch (err) {
         // console.log(err)
-        assert.include(err.message, 'Cannot read property')
+        assert.include(err.message, 'Cannot read')
       }
     })
 
