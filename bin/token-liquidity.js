@@ -158,6 +158,7 @@ async function startTokenLiquidity () {
         await getJwt()
         bch = new BCH(config) // Reinitialize bchjs with the JWT token.
         // slp = new SLP(config) // Reinitialize bchjs with the JWT token.
+        slp2 = new SLP2(config)
       } catch (err) {
         wlogger.error('Error trying to renew JWT token: ', err)
       }
