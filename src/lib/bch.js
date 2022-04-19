@@ -158,8 +158,7 @@ class BCH {
       console.log(`this.bchjs.apiToken: ${this.bchjs.apiToken}`)
 
       // Set the apiToken if it's not set.
-      if(!this.bchjs.apiToken)
-        this.bchjs.apiToken = process.env.BCHJSTOKEN
+      if (!this.bchjs.apiToken) { this.bchjs.apiToken = process.env.BCHJSTOKEN }
 
       throw err
     }
