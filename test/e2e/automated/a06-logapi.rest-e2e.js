@@ -9,7 +9,7 @@ util.inspect.defaultOptions = { depth: 1 }
 
 const LOCALHOST = `http://localhost:${config.port}`
 
-const LogsController = require('../../../src/modules/logapi/controller')
+const LogsController = require('../../../src/controllers/rest-api/logapi/controller')
 const mockContext = require('../../unit/mocks/ctx-mock').context
 
 let sandbox
@@ -35,6 +35,7 @@ describe('LogsApi', () => {
         const result = await axios(options)
         assert.isFalse(result.data.success)
       } catch (err) {
+        console.log('err', err)
         assert(false, 'Unexpected result')
       }
     })

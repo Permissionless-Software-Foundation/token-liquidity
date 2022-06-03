@@ -17,13 +17,11 @@ const cors = require('kcors')
 // Local libraries
 const config = require('../config') // this first.
 
-const AdminLib = require('../src/lib/admin')
+const AdminLib = require('../src/adapters/admin')
 const adminLib = new AdminLib()
 
 const errorMiddleware = require('../src/middleware')
-
-// Winston logger
-const wlogger = require('../src/lib/wlogger')
+const wlogger = require('../src/adapters/wlogger')
 
 async function startServer () {
   console.log(`Using network: ${config.NETWORK}`)
@@ -58,9 +56,10 @@ async function startServer () {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  // Custom Middleware Modules
-  const modules = require('../src/modules')
-  modules(app)
+  // Attach REST API and JSON RPC controllers to the app.
+  const Controllers = require('../src/controllers')
+  const controllers = new Controllers()
+  await controllers.attachRESTControllers(app)
 
   // Enable CORS for testing
   app.use(cors({ origin: '*' }))
