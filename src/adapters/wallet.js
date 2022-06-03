@@ -6,6 +6,7 @@
 const BchWallet = require('minimal-slp-wallet/index')
 
 // Local libraries
+const wlogger = require('./wlogger')
 
 class Wallet {
   constructor (localConfig = {}) {
@@ -18,6 +19,7 @@ class Wallet {
       noUpdate: true
     })
     this.bchjs = this.wallet.bchjs
+    this.wlogger = wlogger
   }
 
   // Returns true after the wallet has been initialized.
@@ -37,6 +39,27 @@ class Wallet {
     console.log('Wallet is initialized.')
 
     return true
+  }
+
+  // Get balances of BCH and tokens.
+  async getBalances () {
+    try {
+      const bchBalance = await this.wallet.getBalance()
+      // console.log('bchBalance: ', bchBalance)
+
+      const slpBalance = await this.wallet.listTokens()
+      // console.log('slpBalance: ', slpBalance)
+
+      const outObj = {
+        sats: bchBalance,
+        tokens: slpBalance
+      }
+
+      return outObj
+    } catch (err) {
+      this.wlogger.error('Error in wallet.js/getBalances()')
+      throw err
+    }
   }
 }
 

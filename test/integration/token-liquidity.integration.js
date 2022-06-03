@@ -6,10 +6,10 @@ process.env.NETWORK = 'mainnet'
 
 const config = require('../../config')
 
-const TLLib = require('../../src/lib/token-liquidity')
+const TLLib = require('../../src/adapters/token-liquidity')
 const tlLib = new TLLib()
 
-const BCH = require('../../src/lib/bch')
+const BCH = require('../../src/adapters/bch')
 const bch = new BCH(config)
 
 const assert = require('chai').assert

@@ -14,6 +14,7 @@ const JSONFiles = require('./json-files')
 const config = require('../../config')
 const FullStack = require('./fullstack-cash')
 const Wallet = require('./wallet')
+const TLMain = require('./tl-main')
 
 // const ONE_HOUR = 60000 * 60
 const ONE_HOUR = 60000 * 1
@@ -32,6 +33,7 @@ class Adapters {
     this.wlogger = wlogger
     this.fullstack = new FullStack()
     this.wallet = new Wallet()
+    this.tlMain = new TLMain()
 
     _this = this
   }
@@ -49,10 +51,11 @@ class Adapters {
 
         // Initialize the wallet
         await this.wallet.initWallet(this.config.mnemonic, apiToken)
-      }
 
-      // Update any adapters that depend on bch-js.
-      // this.renewBchJS()
+        // Display balances of wallet.
+        const balance = await this.wallet.getBalances()
+        console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
+      }
     } catch (err) {
       console.error('Error in adapters/index.js/startAdapters()')
       throw err
