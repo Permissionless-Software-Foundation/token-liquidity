@@ -8,7 +8,7 @@ const assert = require('chai').assert
 const sinon = require('sinon')
 const nock = require('nock')
 
-const TLUtils = require('../../../src/lib/util')
+const TLUtils = require('../../../src/adapters/util')
 
 // const bitboxMock = require('bitbox-mock')
 // const txMockData = require('./mocks/transactions')

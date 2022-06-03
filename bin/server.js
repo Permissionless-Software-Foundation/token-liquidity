@@ -56,9 +56,10 @@ async function startServer () {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  // Attach REST API and JSON RPC controllers to the app.
+  // Start Adapters libraries, and attach Controller libraries (Clean Architecture).
   const Controllers = require('../src/controllers')
   const controllers = new Controllers()
+  await controllers.initAdapters()
   await controllers.attachRESTControllers(app)
 
   // Enable CORS for testing

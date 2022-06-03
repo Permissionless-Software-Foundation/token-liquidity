@@ -46,7 +46,9 @@ const wlogger = winston.createLogger({
 // Add simple logging to the console.
 // if (process.env.APP_ENV !== 'test') {
 
-if (process.env.TEST_ENV !== 'unit') {
+// if (process.env.TEST_ENV !== 'unit') {
+// console.log('config.env: ', config.env)
+if (config.env !== 'test') {
   wlogger.add(
     new winston.transports.Console({
       format: winston.format.simple(),

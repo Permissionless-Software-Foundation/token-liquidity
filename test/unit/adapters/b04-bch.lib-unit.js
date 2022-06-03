@@ -8,7 +8,7 @@ const assert = require('chai').assert
 const sinon = require('sinon')
 const cloneDeep = require('lodash.clonedeep')
 
-const BCH = require('../../../src/lib/bch')
+const BCH = require('../../../src/adapters/bch')
 
 const bchMockDataLib = require('../mocks/bch.mock')
 const mockWallet = require('../mocks/testwallet.json')

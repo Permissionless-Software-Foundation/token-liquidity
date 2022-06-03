@@ -9,7 +9,7 @@ const cloneDeep = require('lodash.clonedeep')
 
 // Local libraries.
 const config = require('../../../config')
-const SLP2 = require('../../../src/lib/slp2')
+const SLP2 = require('../../../src/adapters/slp2')
 const mockDataLib = require('../mocks/slp2.mock')
 const mockWallet = require('../mocks/testwallet.json')
 

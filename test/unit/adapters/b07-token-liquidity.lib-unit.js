@@ -8,7 +8,7 @@ const assert = require('chai').assert
 const sinon = require('sinon')
 const nock = require('nock')
 
-const TokenLiquidity = require('../../../src/lib/token-liquidity')
+const TokenLiquidity = require('../../../src/adapters/token-liquidity')
 
 // const bitboxMock = require('bitbox-mock')
 // const txMockData = require('./mocks/transactions')

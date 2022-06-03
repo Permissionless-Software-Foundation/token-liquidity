@@ -1,5 +1,5 @@
 # Developer Documentation
-The token-liquidity app is based on [this Koa boilerplate](https://github.com/christroutner/koa-api-boilerplate), which is a web server for building REST APIs in node.js JavaScript. Developers who wish to modify this code base for their own token should familiarize themselves with that boilerplate first. The rest of this document will address the code specific to the token-liquidity app.
+The token-liquidity app is based on [this Koa boilerplate](https://github.com/christroutner/koa-api-boilerplate), and the code follows the [Clean Architecture](https://bafybeia6bmmobrl2mrracakx6uzohjwdnymzzgvw6d4voesri5ghfh2nju.ipfs.dweb.link/blog/clean-architecture) design pattern. That boilerplate is a web server for building REST APIs in node.js JavaScript. Developers who wish to modify this code base for their own token should familiarize themselves with that boilerplate first. The rest of this document will address the code specific to the token-liquidity app.
 
 To provide context to the mechanics described above, be sure to read the [this section of the PSF business plan](https://psfoundation.cash/biz-plan/business-plan#pseudoStableToken).
 
@@ -28,7 +28,7 @@ The loop calls `detectNewTxs()` which returns an array of any new TXIDs associat
 
 If no new transactions are found, the loop retrieves its balances from an indexer, updates its state, and then exits.
 
-If a new transaction is found, it is added to the `seenTxs` object, and then the TX is added to a processing queue. The processing queue will try to process the transaction several times until it succeeds. 
+If a new transaction is found, it is added to the `seenTxs` object, and then the TX is added to a processing queue. The processing queue will try to process the transaction several times until it succeeds.
 
 The `token-liquidity.js/processTx()` function processes the transaction. At a high level, the purpose of this function is to send tokens if it recieves BCH, or to send BCH if it recieves tokens. The exchange rate is determined by a mathematical function.
 

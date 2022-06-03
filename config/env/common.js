@@ -56,7 +56,11 @@ configOut = {
   MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v5/',
   BCHLIB: BCHJS,
 
-  blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch'
+  blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch',
+
+  fullstackAuthServer: process.env.FULLSTACK_AUTH ? process.env.FULLSTACK_AUTH : 'https://auth.fullstack.cash',
+  fullstackLogin: process.env.FULLSTACKLOGIN ? process.env.FULLSTACKLOGIN : 'demo@demo.com',
+  fullstackPass: process.env.FULLSTACKPASS ? process.env.FULLSTACKPASS : 'demo'
 }
 
 module.exports = configOut
