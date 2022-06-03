@@ -13,9 +13,10 @@ const wlogger = require('./wlogger')
 const JSONFiles = require('./json-files')
 const config = require('../../config')
 const FullStack = require('./fullstack-cash')
+const Wallet = require('./wallet')
 
-const ONE_HOUR = 60000 * 60
-// const ONE_HOUR = 60000 * 1
+// const ONE_HOUR = 60000 * 60
+const ONE_HOUR = 60000 * 1
 
 let _this
 
@@ -30,6 +31,7 @@ class Adapters {
     this.config = config
     this.wlogger = wlogger
     this.fullstack = new FullStack()
+    this.wallet = new Wallet()
 
     _this = this
   }
@@ -40,35 +42,43 @@ class Adapters {
       if (this.config.env !== 'test') {
         // Get a JWT token from FullStack.cash and update the BCHJSTOKEN environment
         // variable.
-        await this.fullstack.getJwt()
+        const apiToken = await this.fullstack.getJwt()
 
         // Start an interval to renew the JWT token.
         this.fullstackInterval = setInterval(this.refreshBchJS, ONE_HOUR)
+
+        // Initialize the wallet
+        await this.wallet.initWallet(this.config.mnemonic, apiToken)
       }
 
       // Update any adapters that depend on bch-js.
-      this.renewBchJS()
+      // this.renewBchJS()
     } catch (err) {
       console.error('Error in adapters/index.js/startAdapters()')
       throw err
     }
   }
 
+  // Called by a timer interval, in order to refresh the FullStack.cash JWT
+  // tokens and re-instantiate any libraries that use bch-js.
   async refreshBchJS () {
     // Renew the FullStack.cash JWT token.
-    await _this.fullstack.getJwt()
+    const apiToken = await _this.fullstack.getJwt()
 
     // Update the adapter libraries that depend on bch-js.
-    _this.renewBchJS()
+    await _this.renewBchJS(apiToken)
   }
 
   // Refresh the libraries that rely on bch-js, after the FullStack.cash JWT
   // token has been renewed.
-  renewBchJS () {
+  async renewBchJS (apiToken) {
     // this.memo = new Memo({bchjs})
     // this.metadata = new MetaData()
     // this.project = new Project()
     // this.tokens = new Tokens()
+
+    // _this.bch = new BCH({ apiToken: _this.fullstack.apiToken })
+    await _this.wallet.initWallet(this.config.mnemonic, apiToken)
 
     this.wlogger.info('FullStack JWT token refreshed and libraries updated.')
   }

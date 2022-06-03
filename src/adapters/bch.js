@@ -10,6 +10,8 @@ const tlUtils = new TLUtils()
 // Winston logger
 const wlogger = require('./wlogger')
 
+const config = require('../../config')
+
 // Mainnet by default
 // const bchjs = new this.config.BCHLIB({ restURL: this.config.MAINNET_REST })
 
@@ -18,7 +20,7 @@ const wlogger = require('./wlogger')
 // let _this
 
 class BCH {
-  constructor (config) {
+  constructor (localConfig = {}) {
     this.config = config
 
     this.bchjs = new this.config.BCHLIB({

@@ -19,6 +19,7 @@ class FullStack {
       password: config.fullstackPass
     })
     this.config = config
+    this.apiToken = ''
   }
 
   // Get's a JWT token from FullStack.cash
@@ -26,6 +27,12 @@ class FullStack {
   // https://github.com/Permissionless-Software-Foundation/jwt-bch-demo
   async getJwt () {
     try {
+      // Skip if this app is configured to NOT get an API token.
+      if (!this.config.getAPITokenAtStartup) {
+        this.apiToken = ''
+        return this.apiToken
+      }
+
       // Log into the auth server.
       await this.jwtLib.register()
 
@@ -50,7 +57,7 @@ class FullStack {
 
       return apiToken
     } catch (err) {
-      wlogger.debug('Error in fullstack-cash.js/getJwt(): ', err)
+      wlogger.error('Error in fullstack-cash.js/getJwt(): ', err)
       throw err
     }
   }

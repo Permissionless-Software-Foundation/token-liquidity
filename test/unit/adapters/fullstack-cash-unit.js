@@ -62,5 +62,14 @@ describe('#FullStack', () => {
         assert.include(err.message, 'test error')
       }
     })
+
+    it('should return if app is configured to not use JWT API tokens', async () => {
+      // Force code path.
+      uut.config.getAPITokenAtStartup = false
+
+      const result = await uut.getJwt()
+
+      assert.equal(result, '')
+    })
   })
 })
