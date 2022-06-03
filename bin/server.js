@@ -81,7 +81,7 @@ async function startServer () {
   // Restart the app every 24 hours
   const TWENTY_FOUR_HOURS = 60000 * 60 * 24
   // const TWENTY_FOUR_HOURS = 5000
-  setInterval(function() {
+  setInterval(function () {
     console.log('Exiting after 24 hours. Depending on pm2 to restart the app.')
     process.exit()
   }, TWENTY_FOUR_HOURS)
