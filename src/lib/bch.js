@@ -153,6 +153,13 @@ class BCH {
       return 0
     } catch (err) {
       wlogger.error('Error in recievedBch: ', err)
+
+      console.log(`process.env.BCHJSTOKEN: ${process.env.BCHJSTOKEN}`)
+      console.log(`this.bchjs.apiToken: ${this.bchjs.apiToken}`)
+
+      // Set the apiToken if it's not set.
+      if (!this.bchjs.apiToken) { this.bchjs.apiToken = process.env.BCHJSTOKEN }
+
       throw err
     }
   }
