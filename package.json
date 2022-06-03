@@ -1,6 +1,6 @@
 {
   "name": "token-liquidity",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "BCH SLP Token Liquidity Web App for the Permissionless Software Foundation",
   "main": "token-liquidity.js",
   "scripts": {

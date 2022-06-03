@@ -14,7 +14,6 @@ const JSONFiles = require('./json-files')
 const config = require('../../config')
 const FullStack = require('./fullstack-cash')
 const Wallet = require('./wallet')
-const TLMain = require('./tl-main')
 
 // const ONE_HOUR = 60000 * 60
 const ONE_HOUR = 60000 * 1
@@ -33,7 +32,6 @@ class Adapters {
     this.wlogger = wlogger
     this.fullstack = new FullStack()
     this.wallet = new Wallet()
-    this.tlMain = new TLMain()
 
     _this = this
   }

@@ -1,5 +1,5 @@
 /*
-  Main token-liquidity adapter. This kicks off a lot of the main processing code.
+  Main token-liquidity business logic.
 */
 
 // Local libraries
@@ -8,6 +8,14 @@ const config = require('../../config')
 
 class TLMain {
   constructor (localConfig = {}) {
+    // Dependency Injection
+    this.adapters = localConfig.adapters
+    if (!this.adapters) {
+      throw new Error(
+        'Instance of adapters must be passed in when instantiating token-liquidity Use Cases library.'
+      )
+    }
+
     // Encapsulate dependencies
     this.config = config
   }
