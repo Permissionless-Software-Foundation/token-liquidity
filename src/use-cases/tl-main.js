@@ -2,6 +2,9 @@
   Main token-liquidity business logic.
 */
 
+// Global npm libraries
+const collect = require('collect.js')
+
 // Local libraries
 const config = require('../../config')
 // const wlogger = require('./wlogger')
@@ -20,15 +23,47 @@ class TLMain {
     this.config = config
   }
 
-  // async start() {
-  //   try {
-  //     // Get the balance of the wallet.
-  //     const balances =
-  //   } catch(err) {
-  //     wlogger.error('Error in tl-main.js/start()')
-  //     throw err
-  //   }
-  // }
+  // seenTxs = array of txs that have already been processed.
+  // curTxs = Gets a list of transactions associated with the address.
+  // diffTxs = diff seenTxs from curTxs
+  // filter out all the txs in diffTx that are 0-conf
+  // Add them to the seenTxs array after they've been processed.
+  //  - Add them before processing in case something goes wrong with the processing.
+  // process these txs
+  async detectNewTxs (obj) {
+    try {
+      const { seenTxs } = obj
+
+      const historicalTxs = await this.adapters.bch.getTransactions(config.BCH_ADDR)
+      // console.log(`historicalTxs: ${JSON.stringify(historicalTxs, null, 2)}`)
+
+      // Get just the transactions.
+      const txids = historicalTxs.map((elem) => elem.tx_hash)
+
+      const curTxs = collect(txids)
+      // console.log(`curTxs: ${JSON.stringify(curTxs, null, 2)}`)
+
+      // Diff the transactions against the list of processed txs.
+      const diffTxs = curTxs.diff(seenTxs)
+      // console.log(`diffTxs: ${JSON.stringify(diffTxs, null, 2)}`)
+
+      // Exit if there are no new transactions.
+      if (diffTxs.items.length === 0) return []
+
+      // Get confirmation info on each transaction.
+      const confs = await this.adapters.txs.getTxConfirmations(diffTxs.items)
+      // console.log(`confs: ${JSON.stringify(confs, null, 2)}`)
+
+      // Filter out any zero conf transactions.
+      const newTxs = confs.filter((x) => x.confirmations > 0)
+      // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
+
+      return newTxs
+    } catch (err) {
+      console.error('Error in lib/token-liquidity.js/detectNewTxs()')
+      throw err
+    }
+  }
 }
 
 module.exports = TLMain

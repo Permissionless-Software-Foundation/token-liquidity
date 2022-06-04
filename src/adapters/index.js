@@ -14,6 +14,8 @@ const JSONFiles = require('./json-files')
 const config = require('../../config')
 const FullStack = require('./fullstack-cash')
 const Wallet = require('./wallet')
+const BCH = require('./bch')
+const Transactions = require('./transactions')
 
 // const ONE_HOUR = 60000 * 60
 const ONE_HOUR = 60000 * 1
@@ -73,13 +75,15 @@ class Adapters {
   // Refresh the libraries that rely on bch-js, after the FullStack.cash JWT
   // token has been renewed.
   async renewBchJS (apiToken) {
-    // this.memo = new Memo({bchjs})
-    // this.metadata = new MetaData()
-    // this.project = new Project()
-    // this.tokens = new Tokens()
-
-    // _this.bch = new BCH({ apiToken: _this.fullstack.apiToken })
+    // Reinitialize wallet with the new apiToken.
     await _this.wallet.initWallet(this.config.mnemonic, apiToken)
+
+    // Extract bch-js from the wallet library.
+    const bchjs = _this.wallet.bchjs
+
+    // Re-initialized support Adapters that use bch-js
+    this.bch = new BCH({ bchjs })
+    this.txs = new Transactions({ bchjs })
 
     this.wlogger.info('FullStack JWT token refreshed and libraries updated.')
   }

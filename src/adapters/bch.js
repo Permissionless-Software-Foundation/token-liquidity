@@ -4,12 +4,9 @@
 
 'use strict'
 
+// Local libraries
 const TLUtils = require('./util')
-const tlUtils = new TLUtils()
-
-// Winston logger
 const wlogger = require('./wlogger')
-
 const config = require('../../config')
 
 // Mainnet by default
@@ -21,14 +18,20 @@ const config = require('../../config')
 
 class BCH {
   constructor (localConfig = {}) {
+    // Dependency Injection
+    this.bchjs = localConfig.bchjs
+    if (!this.bchjs) {
+      throw new Error('Instance of bch-js required when instantiating bch.js Adapter library.')
+    }
+
     this.config = config
 
-    this.bchjs = new this.config.BCHLIB({
-      restURL: this.config.MAINNET_REST
-      // apiToken: process.env.BCHJSTOKEN,
-    })
+    // this.bchjs = new this.config.BCHLIB({
+    //   restURL: this.config.MAINNET_REST
+    //   // apiToken: process.env.BCHJSTOKEN,
+    // })
 
-    this.tlUtils = tlUtils
+    this.tlUtils = new TLUtils()
 
     // _this = this
   }

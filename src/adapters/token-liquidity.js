@@ -15,8 +15,9 @@ const TLUtils = require('./util')
 const tlUtil = new TLUtils()
 
 // BCH library
-const BCH = require('./bch')
-const bch = new BCH(config)
+// const BCH = require('./bch')
+// const bch = new BCH(config)
+const bch = {}
 
 // SLP Token library
 // const SLP = require('./slp')
@@ -26,8 +27,9 @@ const SLP2 = require('./slp2')
 const slp2 = new SLP2(config)
 
 // Transactions library
-const Transactions = require('./transactions')
-const txs = new Transactions()
+// const Transactions = require('./transactions')
+// const txs = new Transactions()
+const txs = {}
 
 // Email contact library.
 const Email = require('./contact')

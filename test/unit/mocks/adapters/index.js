@@ -38,4 +38,13 @@ const localdb = {
   }
 }
 
-module.exports = { localdb }
+const bch = {
+  getTransactions: () => {},
+  justTxs: () => {}
+}
+
+const txs = {
+  getTxConfirmations: () => {}
+}
+
+module.exports = { localdb, bch, txs }

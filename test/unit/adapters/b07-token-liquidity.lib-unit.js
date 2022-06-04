@@ -1,7 +1,7 @@
 /*
   Unit and integration tests for the token-liquidity.js library
 */
-
+/*
 'use strict'
 
 const assert = require('chai').assert
@@ -291,7 +291,7 @@ describe('#token-liquidity', () => {
   // Only run these tests for a unit test.
   if (process.env.TEST_ENV === 'unit') {
     describe('compareLastTransaction', () => {
-      /*
+
         it(`should return false if transactions are the same`, async () => {
           const obj = {
             bchAddr: `bchtest:qq8wqgxq0uu4y6k92pw9f7s6hxzfp9umsvtg39pzqf`,
@@ -305,8 +305,7 @@ describe('#token-liquidity', () => {
 
           assert.equal(result, false, 'return false expected')
         })
-        */
-      /*
+
       it('should send BCH in exchange for tokens', async () => {
         const obj = {
           bchAddr: `bchtest:qq8wqgxq0uu4y6k92pw9f7s6hxzfp9umsvtg39pzqf`,
@@ -347,7 +346,7 @@ describe('#token-liquidity', () => {
           // 'tokenBalance'
         ])
       })
-      */
+
     })
 
     describe('#getCoinbasePrice()', () => {
@@ -632,3 +631,4 @@ describe('#token-liquidity', () => {
     })
   }
 })
+*/

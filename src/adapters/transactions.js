@@ -2,56 +2,23 @@
   Library for working with BCH transactions.
 */
 
-'use strict'
-
-// Used for debugging and iterrogating JS objects.
-const util = require('util')
-util.inspect.defaultOptions = { depth: 5 }
-
+// Local libraries
 const config = require('../../config')
-
-// Winston logger
 const wlogger = require('./wlogger')
-
-// Mainnet by default
-let bchjs = new config.BCHLIB({ restURL: config.MAINNET_REST })
 
 // let _this
 
 class Transactions {
-  constructor () {
-    // _this = this
-
-    // Determine if this is a testnet wallet or a mainnet wallet.
-    if (config.NETWORK === 'testnet') {
-      bchjs = new config.BCHLIB({ restURL: config.TESTNET_REST })
+  constructor (localConfig = {}) {
+    // Dependency Injection
+    this.bchjs = localConfig.bchjs
+    if (!this.bchjs) {
+      throw new Error('Instance of bch-js required when instantiating bch.js Adapter library.')
     }
 
-    this.bchjs = bchjs
+    // Encapsulate dependencies
+    this.config = config
   }
-
-  // DEPRECATED - This function is being deprecated in favor of getUserAddr2()
-  // Queries the transaction details and returns the senders BCH address.
-  // async getUserAddr (txid) {
-  //   try {
-  //     wlogger.debug(`Entering getUserAddr(). txid: ${txid}`)
-  //
-  //     // const txDetails = await this.BITBOX.Transaction.details(txid)
-  //     const txDetails = await this.bchjs.Blockbook.tx(txid)
-  //     // console.log(`txDetails: ${JSON.stringify(txDetails, null, 2)}`)
-  //
-  //     // Assumption: There is only 1 vin element, or the senders address exists in
-  //     // the first vin element.
-  //     const vin = txDetails.vin[0]
-  //     // console.log(`vin: ${JSON.stringify(vin, null, 2)}`)
-  //     const senderAddr = vin.addresses[0]
-  //
-  //     return senderAddr
-  //   } catch (err) {
-  //     wlogger.debug('Error in transactions.js/getUserAddr().')
-  //     throw err
-  //   }
-  // }
 
   // Queries the transaction details and returns the senders BCH address.
   // This method uses calls directly to the full node, rather than using
@@ -84,25 +51,6 @@ class Transactions {
       throw err
     }
   }
-
-  // Deprecated??? Commenting out to see if it breaks anything.
-  // Returns true if there are no 0 or 1-conf transactions associated with the address.
-  // async only2Conf (bchAddr) {
-  //   try {
-  //     wlogger.silly('Entering only2Conf.')
-  //
-  //     // Get an ordered list of transactions associated with this address.
-  //     let txs = await this.getTransactions(bchAddr)
-  //     txs = this.getTxConfs(txs.txs)
-  //
-  //     if (txs[0].confirmations > 1) return true
-  //
-  //     return false
-  //   } catch (err) {
-  //     wlogger.error('Error in transactions.js/only2Conf(). Returning false', err)
-  //     return false
-  //   }
-  // }
 
   // Expects an array of txids as input. Returns an array of objects.
   // Each object contains the txid and the confirmations for that tx.
