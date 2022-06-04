@@ -7,6 +7,7 @@ const collect = require('collect.js')
 
 // Local libraries
 const config = require('../../config')
+const Trade = require('./trade')
 // const wlogger = require('./wlogger')
 
 class TLMain {
@@ -21,6 +22,7 @@ class TLMain {
 
     // Encapsulate dependencies
     this.config = config
+    this.trade = new Trade(localConfig)
 
     this.state = {
       satBalance: 0,
