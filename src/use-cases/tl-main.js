@@ -48,12 +48,27 @@ class TLMain {
       // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
       this.state.tokenBalance = targetToken[0].qty
 
+      // Get the spot price of BCH
+      const usdPerBch = await this.adapters.wallet.wallet.getUsd()
+      this.state.usdPerBch = this.adapters.wallet.bchjs.Util.floor2(usdPerBch)
+
+      // Get the effective token balance:
+      this.state.effectiveTokenBalance = this.getEffectiveTokenBalance(this.state.bchBalance)
+
       // Display the state of the wallet
       console.log(`Wallet balance in sats: ${this.state.satBalance}`)
       console.log(`Wallet balance in BCH: ${this.state.bchBalance}`)
-      console.log(`Wallet balance in tokens: ${this.state.tokenBalance}`)
+      console.log(`Effective token balance: ${this.state.effectiveTokenBalance}`)
+      console.log(`Actual token balance: ${this.state.tokenBalance}`)
       console.log(`App target token ID: ${this.config.slpTokenId}`)
+      console.log(`Spot price of BCH: ${this.state.usdPerBch}`)
       console.log(' ')
+
+      // console.log('this.adapters: ', this.adapters)
+
+      // Get historical transactions for the app wallet.
+      const historicalTxs = await this.adapters.bch.getTransactions(this.config.BCH_ADDR)
+      this.state.seenTxs = this.adapters.bch.justTxs(historicalTxs)
     } catch (err) {
       console.error('Error in use-cases/tl-main.js/initState()')
       throw err
@@ -98,6 +113,30 @@ class TLMain {
       return newTxs
     } catch (err) {
       console.error('Error in lib/token-liquidity.js/detectNewTxs()')
+      throw err
+    }
+  }
+
+  // Returns the 'effective' token balance used when calculating an exchange.
+  // This is based on the BCH balance and should be less than or equal to
+  // the 'actual' token balance.
+  getEffectiveTokenBalance (bchBalance) {
+    try {
+      if (typeof bchBalance === 'undefined') {
+        throw new Error('bchBalance is required')
+      }
+
+      const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
+      const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
+
+      let tokenBalance =
+        -1 * tokenOriginalBalance * Math.log(bchBalance / bchOriginalBalance)
+
+      tokenBalance = this.adapters.wallet.wallet.bchjs.Util.floor8(tokenBalance)
+
+      return tokenBalance
+    } catch (err) {
+      console.error('Error in use-cases/tl-main.js/getEffectiveTokenBalance().')
       throw err
     }
   }

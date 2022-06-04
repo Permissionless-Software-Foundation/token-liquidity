@@ -6,9 +6,10 @@
 const assert = require('chai').assert
 const sinon = require('sinon')
 const cloneDeep = require('lodash.clonedeep')
+const BchWallet = require('minimal-slp-wallet/index')
 
 // Local libraries.
-const config = require('../../../config')
+// const config = require('../../../config')
 const SLP2 = require('../../../src/adapters/slp2')
 const mockDataLib = require('../mocks/slp2.mock')
 const mockWallet = require('../mocks/testwallet.json')
@@ -17,11 +18,25 @@ describe('#slp2.js', () => {
   let uut, sandbox, mockData
 
   beforeEach(() => {
-    uut = new SLP2(config)
+    const wallet = new BchWallet(undefined, { noUpdate: true })
+
+    uut = new SLP2({ wallet })
 
     sandbox = sinon.createSandbox()
 
     mockData = cloneDeep(mockDataLib)
+  })
+
+  describe('#constructor', () => {
+    it('should throw an error if wallet instance is not included', async () => {
+      try {
+        uut = new SLP2()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Instance of minimal-slp-wallet required when instantiating the SLP class.')
+      }
+    })
   })
 
   describe('#getTokenBalance', () => {

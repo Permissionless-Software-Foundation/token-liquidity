@@ -5,7 +5,7 @@
 */
 
 // Public npm libraries
-const BchWallet = require('minimal-slp-wallet/index')
+// const BchWallet = require('minimal-slp-wallet/index')
 const BigNumber = require('bignumber.js')
 const pRetry = require('p-retry')
 
@@ -13,6 +13,7 @@ const pRetry = require('p-retry')
 const TLUtils = require('./util')
 const wlogger = require('./wlogger')
 const Email = require('./contact')
+const config = require('../../config')
 
 // This constant saves an API call for each UTXO.
 const TOKEN_DECIMALS = 8
@@ -21,8 +22,14 @@ class SLP {
   constructor (localConfig = {}) {
     // console.log(`localConfig: ${JSON.stringify(localConfig, null, 2)}`);
 
+    // Dependency Injection
+    this.wallet = localConfig.wallet
+    if (!this.wallet) {
+      throw new Error('Instance of minimal-slp-wallet required when instantiating the SLP class.')
+    }
+
     // Encapsulate dependencies
-    this.config = localConfig
+    this.config = config
     this.tlUtils = new TLUtils()
     this.email = new Email()
     this.walletInfo = this.tlUtils.openWallet()
@@ -31,20 +38,9 @@ class SLP {
     // Determine the environment
     if (!process.env.TL_ENV) process.env.TL_ENV = 'test'
 
-    // Initialize the wallet library
-    const advancedOptions = {
-      restURL: localConfig.MAINNET_REST,
-      apiToken: process.env.BCHJSTOKEN
-    }
-
-    // Disable wallet UTXO retrieval if this is a test.
-    if (process.env.TL_ENV === 'test') {
-      advancedOptions.noUpdate = true
-    }
-
     // Initialize minimal-slp-wallet
-    this.bchWallet = new BchWallet(this.walletInfo.mnemonic, advancedOptions)
-    this.bchjs = this.bchWallet.bchjs
+    this.bchWallet = this.wallet
+    this.bchjs = this.wallet.bchjs
   }
 
   async waitForWalletInit () {

@@ -2,6 +2,8 @@
   Mocks for the Adapter library.
 */
 
+const BchWallet = require('minimal-slp-wallet/index')
+
 const localdb = {
   Users: class Users {
     static findById () {}
@@ -47,4 +49,8 @@ const txs = {
   getTxConfirmations: () => {}
 }
 
-module.exports = { localdb, bch, txs }
+const wallet = {
+  wallet: new BchWallet(undefined, { noUpdate: true })
+}
+
+module.exports = { localdb, bch, txs, wallet }

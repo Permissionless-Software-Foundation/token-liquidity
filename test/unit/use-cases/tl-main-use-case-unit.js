@@ -101,4 +101,25 @@ describe('#tl-main-use-cases', () => {
       }
     })
   })
+
+  describe('#getEffectiveTokenBalance()', () => {
+    it('should get token balance', async () => {
+      const bchBalance = 12.44768481
+
+      const result = await uut.getEffectiveTokenBalance(bchBalance)
+      // console.log('result: ', result)
+
+      assert.equal(result, 149996.31356401)
+    })
+
+    it('should throw error if bchBalance is not provided', async () => {
+      try {
+        await uut.getEffectiveTokenBalance()
+
+        assert.fail('Unexpected result')
+      } catch (error) {
+        assert.include(error.message, 'bchBalance is required')
+      }
+    })
+  })
 })
