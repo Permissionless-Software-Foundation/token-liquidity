@@ -21,6 +21,43 @@ class TLMain {
 
     // Encapsulate dependencies
     this.config = config
+
+    this.state = {
+      satBalance: 0,
+      bchBalance: 0,
+      tokenBalance: 0
+    }
+  }
+
+  // Initialize the app by setting the state.
+  // - Get BCH and token balance of app wallet
+  // - Get spot price of BCH
+  // - Calculate the spot exchange rate between BCH/PSF token.
+  async initState () {
+    try {
+      // Get balances of wallet
+      const balance = await this.adapters.wallet.getBalances()
+      // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
+
+      // Calculate the sat and BCH balances.
+      this.state.satBalance = balance.sats
+      this.state.bchBalance = this.adapters.wallet.bchjs.BitcoinCash.toBitcoinCash(balance.sats)
+
+      // Get the balance of the app token.
+      const targetToken = balance.tokens.filter(x => x.tokenId === this.config.slpTokenId)
+      // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
+      this.state.tokenBalance = targetToken[0].qty
+
+      // Display the state of the wallet
+      console.log(`Wallet balance in sats: ${this.state.satBalance}`)
+      console.log(`Wallet balance in BCH: ${this.state.bchBalance}`)
+      console.log(`Wallet balance in tokens: ${this.state.tokenBalance}`)
+      console.log(`App target token ID: ${this.config.slpTokenId}`)
+      console.log(' ')
+    } catch (err) {
+      console.error('Error in use-cases/tl-main.js/initState()')
+      throw err
+    }
   }
 
   // seenTxs = array of txs that have already been processed.

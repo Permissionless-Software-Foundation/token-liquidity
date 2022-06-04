@@ -51,6 +51,9 @@ configOut = {
   SLP_TOKEN_ID:
     process.env.SLP_TOKEN_ID ||
     'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
+  slpTokenId:
+    process.env.SLP_TOKEN_ID ||
+    'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
 
   // bch-js settings.
   MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v5/',

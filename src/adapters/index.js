@@ -41,6 +41,7 @@ class Adapters {
   // Startup any asynchronous processes needed to initialize the adapter libraries.
   async startAdapters () {
     try {
+      // Skip this section when running automated e2e tests.
       if (this.config.env !== 'test') {
         // Get a JWT token from FullStack.cash and update the BCHJSTOKEN environment
         // variable.
@@ -53,8 +54,8 @@ class Adapters {
         await this.wallet.initWallet(this.config.mnemonic, apiToken)
 
         // Display balances of wallet.
-        const balance = await this.wallet.getBalances()
-        console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
+        // const balance = await this.wallet.getBalances()
+        // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
       }
     } catch (err) {
       console.error('Error in adapters/index.js/startAdapters()')

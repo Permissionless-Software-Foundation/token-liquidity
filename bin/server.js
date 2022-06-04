@@ -60,6 +60,7 @@ async function startServer () {
   const Controllers = require('../src/controllers')
   const controllers = new Controllers()
   await controllers.initAdapters()
+  await controllers.initUseCases()
   await controllers.attachRESTControllers(app)
 
   // Enable CORS for testing
