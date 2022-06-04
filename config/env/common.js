@@ -66,6 +66,7 @@ configOut = {
   fullstackLogin: process.env.FULLSTACKLOGIN ? process.env.FULLSTACKLOGIN : 'demo@demo.com',
   fullstackPass: process.env.FULLSTACKPASS ? process.env.FULLSTACKPASS : 'demo',
 
+  // Placeholder. This expected to be overwritten by an environment variable.
   mnemonic: process.env.MNEMONIC ? process.env.MNEMONIC : 'drum salute decline increase earth cloth tobacco gospel appear motor fever soft'
 }
 
