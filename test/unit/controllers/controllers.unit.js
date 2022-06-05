@@ -6,6 +6,7 @@
 // const assert = require('chai').assert
 const sinon = require('sinon')
 
+// Local libraries
 const Controllers = require('../../../src/controllers')
 
 describe('#Controllers', () => {

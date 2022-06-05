@@ -24,6 +24,10 @@ class TimerControllers {
 
     this.debugLevel = localConfig.debugLevel
 
+    this.state = {
+      newTxCheckTime: 60000 * 0.3
+    }
+
     _this = this
 
     this.startTimers()
@@ -31,16 +35,49 @@ class TimerControllers {
 
   // Start all the time-based controllers.
   startTimers () {
-    setInterval(this.checkForNewTxs, 60000 * 0.6)
+    this.state.newTxCheckInterval = setInterval(this.checkForNewTxs, this.state.newTxCheckTime)
   }
 
   // Poll the apps wallet address to see if new trades have come in.
-  checkForNewTxs () {
+  async checkForNewTxs () {
     try {
-      _this.useCases.tlMain.trade.checkForNewTxs()
+      // Exit if the app is not yet ready to process transactions.
+      // Note: This should be the first command.
+      if (!_this.useCases.tlMain.state.appReady) return 1
+
+      // Disable the timer interval while processing.
+      // Note: This should be the second command.
+      clearInterval(_this.state.newTxCheckInterval)
+
+      const seenTxs = _this.useCases.tlMain.state.seenTxs
+
+      const newTxs = await _this.useCases.tlMain.trade.checkForNewTxs(seenTxs)
+      // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
+
+      // Process any new transactions.
+      if (newTxs.length > 0) {
+        console.log(`...${newTxs.length} new txs found!`)
+
+        for (let i = 0; i < newTxs.length; i++) {
+          console.log(`Processing ${newTxs[i]}`)
+          await _this.useCases.tlMain.handleNewTx(newTxs[i])
+        }
+      } else {
+        console.log('...no new TXs found.')
+      }
+
+      // Enable timer interval after processing.
+      _this.state.newTxCheckInterval = setInterval(_this.checkForNewTxs, _this.state.newTxCheckTime)
+
+      return 2
     } catch (err) {
+      // Enable timer interval after processing.
+      _this.state.newTxCheckInterval = setInterval(_this.checkForNewTxs, _this.state.newTxCheckTime)
+
       // Do not throw an error. This is a top-level function.
       console.log('Error in timer-controllers.js/checkForNewTxs(): ', err)
+
+      return false
     }
   }
 }

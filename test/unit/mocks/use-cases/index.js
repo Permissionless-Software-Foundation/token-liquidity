@@ -31,9 +31,32 @@ class UserUseCaseMock {
   }
 }
 
+class TLMain {
+  constructor() {
+    this.state = {
+      satBalance: 0,
+      bchBalance: 0,
+      tokenBalance: 0,
+      effectiveTokenBalance: 0,
+      usdPerBch: 200,
+      seenTxs: [],
+      appReady: false
+    }
+
+    this.trade = {
+      checkForNewTxs: async () => []
+    }
+  }
+
+  handleNewTx() {
+    return true
+  }
+}
+
 class UseCasesMock {
   constructor(localConfig = {}) {
     this.user = new UserUseCaseMock()
+    this.tlMain = new TLMain()
   }
 }
 

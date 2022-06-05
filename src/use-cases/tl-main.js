@@ -3,7 +3,6 @@
 */
 
 // Global npm libraries
-const collect = require('collect.js')
 
 // Local libraries
 const config = require('../../config')
@@ -27,7 +26,11 @@ class TLMain {
     this.state = {
       satBalance: 0,
       bchBalance: 0,
-      tokenBalance: 0
+      tokenBalance: 0,
+      effectiveTokenBalance: 0,
+      usdPerBch: 200,
+      seenTxs: [],
+      appReady: false
     }
   }
 
@@ -64,57 +67,22 @@ class TLMain {
       console.log(`Actual token balance: ${this.state.tokenBalance}`)
       console.log(`App target token ID: ${this.config.slpTokenId}`)
       console.log(`Spot price of BCH: ${this.state.usdPerBch}`)
+      console.log(`App BCH address: ${this.adapters.wallet.wallet.walletInfo.cashAddress}`)
+      console.log(`App SLP address: ${this.adapters.wallet.wallet.walletInfo.slpAddress}`)
       console.log(' ')
 
       // console.log('this.adapters: ', this.adapters)
 
       // Get historical transactions for the app wallet.
-      const historicalTxs = await this.adapters.bch.getTransactions(this.config.BCH_ADDR)
+      const bchAddr = this.adapters.wallet.wallet.walletInfo.cashAddress
+      const historicalTxs = await this.adapters.bch.getTransactions(bchAddr)
       this.state.seenTxs = this.adapters.bch.justTxs(historicalTxs)
+
+      // Note: This command should come last.
+      // Signal that the app is ready to process transactions.
+      this.state.appReady = true
     } catch (err) {
       console.error('Error in use-cases/tl-main.js/initState()')
-      throw err
-    }
-  }
-
-  // seenTxs = array of txs that have already been processed.
-  // curTxs = Gets a list of transactions associated with the address.
-  // diffTxs = diff seenTxs from curTxs
-  // filter out all the txs in diffTx that are 0-conf
-  // Add them to the seenTxs array after they've been processed.
-  //  - Add them before processing in case something goes wrong with the processing.
-  // process these txs
-  async detectNewTxs (obj) {
-    try {
-      const { seenTxs } = obj
-
-      const historicalTxs = await this.adapters.bch.getTransactions(config.BCH_ADDR)
-      // console.log(`historicalTxs: ${JSON.stringify(historicalTxs, null, 2)}`)
-
-      // Get just the transactions.
-      const txids = historicalTxs.map((elem) => elem.tx_hash)
-
-      const curTxs = collect(txids)
-      // console.log(`curTxs: ${JSON.stringify(curTxs, null, 2)}`)
-
-      // Diff the transactions against the list of processed txs.
-      const diffTxs = curTxs.diff(seenTxs)
-      // console.log(`diffTxs: ${JSON.stringify(diffTxs, null, 2)}`)
-
-      // Exit if there are no new transactions.
-      if (diffTxs.items.length === 0) return []
-
-      // Get confirmation info on each transaction.
-      const confs = await this.adapters.txs.getTxConfirmations(diffTxs.items)
-      // console.log(`confs: ${JSON.stringify(confs, null, 2)}`)
-
-      // Filter out any zero conf transactions.
-      const newTxs = confs.filter((x) => x.confirmations > 0)
-      // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
-
-      return newTxs
-    } catch (err) {
-      console.error('Error in lib/token-liquidity.js/detectNewTxs()')
       throw err
     }
   }
@@ -139,6 +107,32 @@ class TLMain {
       return tokenBalance
     } catch (err) {
       console.error('Error in use-cases/tl-main.js/getEffectiveTokenBalance().')
+      throw err
+    }
+  }
+
+  // Called by the timer controller when a new TXID is detected, which indicates
+  // a new trade needs to be processed.
+  async handleNewTx (txid) {
+    try {
+      console.log(`handleNewTX() processing TXID: ${txid}`)
+
+      // Add the new TXID to the seenTxs state.
+      this.state.seenTxs.push(txid)
+
+      // Wait 5 seconds and then check the double-spend proof
+      await this.adapters.wallet.wallet.bchjs.Util.sleep(5000)
+      const dsProof = await this.adapters.wallet.wallet.bchjs.DSProof.getDSProof(txid)
+      console.log('dsProof: ', dsProof)
+
+      // Exit if dsProof is *not* null
+      if (dsProof !== null) return
+
+      console.log(`placeholder for processing ${txid}`)
+
+      return true
+    } catch (err) {
+      console.error('Error in handleNewTx()')
       throw err
     }
   }
