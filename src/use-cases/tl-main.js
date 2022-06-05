@@ -140,9 +140,9 @@ class TLMain {
         return false
       }
 
-      console.log(`placeholder for processing ${txid}`)
+      const result = await this.trade.processNewTradeTx(txid)
 
-      return true
+      return result
     } catch (err) {
       console.error('Error in handleNewTx()')
       throw err
