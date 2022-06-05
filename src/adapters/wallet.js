@@ -7,6 +7,7 @@ const BchWallet = require('minimal-slp-wallet/index')
 
 // Local libraries
 const wlogger = require('./wlogger')
+const config = require('../../config')
 
 class Wallet {
   constructor (localConfig = {}) {
@@ -20,6 +21,7 @@ class Wallet {
     })
     this.bchjs = this.wallet.bchjs
     this.wlogger = wlogger
+    this.config = config
   }
 
   // Returns true after the wallet has been initialized.
@@ -58,6 +60,24 @@ class Wallet {
       return outObj
     } catch (err) {
       this.wlogger.error('Error in wallet.js/getBalances()')
+      throw err
+    }
+  }
+
+  // Send a quantity of tokens to an address.
+  async sendTokens (address, qty) {
+    try {
+      const receiver = {
+        address,
+        qty,
+        tokenId: this.config.slpTokenId
+      }
+
+      const txid = await this.wallet.sendTokens(receiver, 3)
+
+      return txid
+    } catch (err) {
+      console.error('Error in adapters/wallet.js/sendTokens()')
       throw err
     }
   }

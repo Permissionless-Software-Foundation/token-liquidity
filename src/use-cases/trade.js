@@ -30,6 +30,8 @@ class Trade {
     this.config = config
     this.queue = new PQueue({ concurrency: 1 })
 
+    this.state = {}
+
     // Constants modified in unit tests
     this.numOfRetries = 5
     this.timeBetweenRetries = 60000 * 1
@@ -97,9 +99,12 @@ class Trade {
   // a new trade TXID is detected. This is largely a wrapper for the
   // pRetryProcessTx() function, which add automatic retry when errors are
   // encountered.
-  async processNewTradeTx (txid) {
+  async processNewTradeTx (txid, state) {
     try {
       console.log(`Processing trade TX: ${txid}`)
+
+      // The parent tl-main.js will pass in an updated state.
+      this.state = state
 
       const result = await this.queue.add(() => this.pRetryProcessTx(txid))
 
@@ -213,9 +218,162 @@ class Trade {
     try {
       console.log(`Processing trade TX: ${txid}`)
 
+      // Get the BCH address for the app.
+      const bchAddr = this.adapters.wallet.wallet.walletInfo.cashAddress
+
+      // Get the sender's address for this transaction.
+      const userAddr = await this.adapters.txs.getUserAddr2(txid)
+      this.adapters.wlogger.info(`Sender's address: ${userAddr}`)
+
+      // Exit if the userAddr is the same as the bchAddr for this app.
+      // This occurs when the app sends bch or tokens to the user, imediately
+      // after processing the users transaction and then broadcasting the trade.
+      if (userAddr === bchAddr) {
+        this.adapters.wlogger.info(
+          'userAddr === app address. Exiting compareLastTransaction()\n'
+        )
+
+        // Signal that this was a self-generated transaction.
+        return null
+      }
+
+      // Determine if this is a token TX (or not)
+      const isTokenTx = await this.adapters.slp.tokenTxInfo(txid)
+      this.adapters.wlogger.debug(`isTokenTx: ${isTokenTx}`)
+
+      if (isTokenTx) {
+        // User sent tokens, and wants to receive BCH.
+
+        const bchOut = this.exchangeTokensForBCH({ tokensIn: isTokenTx })
+        console.log(`Sending ${bchOut} BCH to ${userAddr}.`)
+      } else {
+        // User sent BCH, and wants to receive tokens.
+
+        let bchQty = await this.adapters.bch.recievedBch(txid, bchAddr)
+        this.adapters.wlogger.info(`${bchQty} BCH recieved.`)
+
+        // Ensure bchQty is a number
+        bchQty = Number(bchQty)
+        if (isNaN(bchQty)) {
+          throw new Error('bchQty could not be converted to a number.')
+        }
+
+        if (bchQty < 0.00000547) {
+          throw new Error(
+            "Dust recieved. This is probably a token tx that SLPDB doesn't know about."
+          )
+        }
+
+        const tokensOut = this.exchangeBCHForTokens({ bchQty })
+        console.log(`Sending ${tokensOut} tokens to ${userAddr}`)
+
+        const txidOut = await this.adapters.wallet.sendTokens(userAddr, tokensOut)
+        console.log(`txidOut: ${txidOut}\n`)
+
+        return txidOut
+      }
+
       return true
     } catch (err) {
       console.error('Error in use-cases/trade.js/processTx()')
+      throw err
+    }
+  }
+
+  // Calculates the numbers of tokens to send to user, in exchange for the BCH
+  // the user sent to the app.
+  // This function only uses the BCH to calculate the token output.
+  // This function assumes the app state has been updated before being called.
+  exchangeBCHForTokens (inObj) {
+    try {
+      const { bchQty } =
+        inObj
+
+      // Initialize variables.
+      const bch1 = this.state.bchBalance
+      let token1
+      let token2 = 0
+      const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
+      const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
+
+      // Subtract 270 satoshi tx fee
+      const bch2 = bch1 + bchQty - 0.0000027
+
+      // Use natural logarithm if wallet balance is less than 250 BCH.
+      if (bch1 < bchOriginalBalance) {
+        token1 =
+          -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
+        token2 =
+          -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
+      } else {
+        // Use linear equation if balance is greater than 250 BCH.
+
+        token1 = tokenOriginalBalance * (bch1 / bchOriginalBalance - 1)
+        token2 = tokenOriginalBalance * (bch2 / bchOriginalBalance - 1)
+      }
+
+      const tokensOut = this.adapters.wallet.bchjs.Util.floor8(Math.abs(token2 - token1))
+
+      this.adapters.wlogger.debug(
+        `bch1: ${bch1}, bch2: ${bch2}, token1: ${token1}, token2: ${token2}, tokensOut: ${tokensOut}`
+      )
+
+      this.adapters.wlogger.debug(`Send ${tokensOut} tokens in exchange for ${bchQty} BCH`)
+
+      return tokensOut
+    } catch (err) {
+      this.adapters.wlogger.error('Error in token-liquidity.js/exchangeBCHForTokens().')
+      throw err
+    }
+  }
+
+  // User sent in tokens, exchange them for BCH.
+  // This function assumes the app state has been updated before being called.
+  exchangeTokensForBCH (inObj) {
+    try {
+      const { tokensIn } = inObj
+
+      // Initialize variables.
+      let token1 = 0
+      let token2 = 0
+      let bch2 = 0
+      const bch1 = this.state.bchBalance
+      const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
+      const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
+
+      // Use natural logarithm equations if wallet balance is less than 250 BCH
+      if (bch1 < bchOriginalBalance) {
+        // Calculate the 'Effective' token balance prior to recieving the new tokens.
+        token1 =
+          -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
+
+        token2 = token1 + tokensIn
+
+        bch2 =
+          bchOriginalBalance *
+          Math.pow(Math.E, (-1 * token2) / tokenOriginalBalance)
+      } else {
+        // Use linear equation if wallet balance is greater than (or equal to) 250 BCH.
+
+        token1 = tokenOriginalBalance * (1 - bch1 / bchOriginalBalance)
+
+        token2 = token1 + tokensIn
+
+        bch2 = bchOriginalBalance * (1 - token2 / tokenOriginalBalance)
+      }
+
+      let bchOut = bch2 - bch1 - 0.0000027 // Subtract 270 satoshi tx fee
+      bchOut = Math.abs(this.adapters.wallet.bchjs.Util.floor8(bchOut))
+
+      this.adapters.wlogger.debug(
+        `bch1: ${bch1}, bch2: ${bch2}, token1: ${token1}, token2: ${token2}, bchOut: ${bchOut}`
+      )
+
+      this.adapters.wlogger.debug(`${bchOut} BCH sent in exchange for ${tokensIn} tokens`)
+
+      return bchOut
+    } catch (err) {
+      console.error('Error in use-cases/trade.js/exchangeTokensForBCH()')
       throw err
     }
   }
