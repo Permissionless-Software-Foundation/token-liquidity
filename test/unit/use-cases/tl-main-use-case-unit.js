@@ -63,4 +63,64 @@ describe('#tl-main-use-cases', () => {
       }
     })
   })
+
+  describe('#initState', () => {
+    it('should initialize the apps state', async () => {
+      const result = await uut.initState()
+
+      assert.equal(result, true)
+      assert.equal(uut.state.appReady, true)
+    })
+
+    it('should catch and throw an error', async () => {
+      try {
+        // Force an error
+        sandbox.stub(uut.adapters.wallet, 'getBalances').rejects(new Error('test error'))
+
+        await uut.initState()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#handleNewTx', () => {
+    it('should add new TX to the seenTXs array', async () => {
+      // Mock dependencies
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+
+      const txid = 'a'
+
+      const result = await uut.handleNewTx(txid)
+
+      assert.equal(result, true)
+      assert.include(uut.state.seenTxs, 'a')
+    })
+
+    it('should return false if double spend is detected', async () => {
+      // Mock dependencies
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves({ a: 'b' })
+
+      const txid = 'a'
+
+      const result = await uut.handleNewTx(txid)
+
+      assert.equal(result, false)
+    })
+
+    it('should throw an error if TXID is not included', async () => {
+      try {
+        await uut.handleNewTx()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        // console.log(err)
+        assert.include(err.message, 'txid required when calling handleNewTx()')
+      }
+    })
+  })
 })

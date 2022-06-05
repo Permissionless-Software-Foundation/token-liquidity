@@ -32,6 +32,9 @@ class TLMain {
       seenTxs: [],
       appReady: false
     }
+
+    // Constants manipulated by unit test.
+    this.dsSleepTime = 5000
   }
 
   // Initialize the app by setting the state.
@@ -81,6 +84,8 @@ class TLMain {
       // Note: This command should come last.
       // Signal that the app is ready to process transactions.
       this.state.appReady = true
+
+      return true
     } catch (err) {
       console.error('Error in use-cases/tl-main.js/initState()')
       throw err
@@ -115,18 +120,25 @@ class TLMain {
   // a new trade needs to be processed.
   async handleNewTx (txid) {
     try {
+      if (!txid) {
+        throw new Error('txid required when calling handleNewTx()')
+      }
+
       console.log(`handleNewTX() processing TXID: ${txid}`)
 
       // Add the new TXID to the seenTxs state.
       this.state.seenTxs.push(txid)
 
       // Wait 5 seconds and then check the double-spend proof
-      await this.adapters.wallet.wallet.bchjs.Util.sleep(5000)
+      await this.adapters.wallet.wallet.bchjs.Util.sleep(this.dsSleepTime)
       const dsProof = await this.adapters.wallet.wallet.bchjs.DSProof.getDSProof(txid)
-      console.log('dsProof: ', dsProof)
+      // console.log('dsProof: ', dsProof)
 
       // Exit if dsProof is *not* null
-      if (dsProof !== null) return
+      if (dsProof !== null) {
+        console.log(`Double spend detected! Ignoring TXID ${txid}`)
+        return false
+      }
 
       console.log(`placeholder for processing ${txid}`)
 

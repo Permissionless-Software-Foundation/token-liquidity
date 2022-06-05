@@ -4,6 +4,8 @@
 
 const BchWallet = require('minimal-slp-wallet/index')
 
+const config = require('../../../../config')
+
 const localdb = {
   Users: class Users {
     static findById () {}
@@ -49,8 +51,17 @@ const txs = {
   getTxConfirmations: () => {}
 }
 
+const slpWallet = new BchWallet(undefined, { noUpdate: true })
+
 const wallet = {
-  wallet: new BchWallet(undefined, { noUpdate: true })
+  wallet: slpWallet,
+  bchjs: slpWallet.bchjs,
+  getBalances: () => {
+    return {
+      sats: 100000,
+      tokens: [{ tokenId: config.slpTokenId, qty: 10000 }]
+    }
+  }
 }
 
 module.exports = { localdb, bch, txs, wallet }
