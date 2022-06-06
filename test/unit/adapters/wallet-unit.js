@@ -51,6 +51,7 @@ describe('#Wallet', () => {
   describe('#getBalances', () => {
     it('should get the balance of BCH and tokens', async () => {
       // Mock dependencies
+      sandbox.stub(uut.wallet, 'getUtxos').resolves()
       sandbox.stub(uut.wallet, 'getBalance').resolves(1796675)
       sandbox.stub(uut.wallet, 'listTokens').resolves([
         {
@@ -74,7 +75,7 @@ describe('#Wallet', () => {
     it('should catch and throw an error', async () => {
       try {
         // Force an error
-        sandbox.stub(uut.wallet, 'getBalance').rejects(new Error('test error'))
+        sandbox.stub(uut.wallet, 'getUtxos').rejects(new Error('test error'))
 
         await uut.getBalances()
 

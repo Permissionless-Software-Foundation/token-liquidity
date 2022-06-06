@@ -90,13 +90,14 @@ describe('#tl-main-use-cases', () => {
     it('should add new TX to the seenTXs array', async () => {
       // Mock dependencies
       uut.dsSleepTime = 1
-      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      // sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      sandbox.stub(uut.trade, 'processNewTradeTx').resolves('fake-txid')
 
       const txid = 'a'
 
       const result = await uut.handleNewTx(txid)
 
-      assert.equal(result, true)
+      assert.equal(result, 'fake-txid')
       assert.include(uut.state.seenTxs, 'a')
     })
 

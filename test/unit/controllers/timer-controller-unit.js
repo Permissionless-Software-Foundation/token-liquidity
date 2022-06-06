@@ -79,6 +79,8 @@ describe('#TimerControllers', () => {
       // Set up state for desired code path.
       uut.useCases.tlMain.state.appReady = true
       sandbox.stub(uut.useCases.tlMain.trade, 'checkForNewTxs').resolves(['a'])
+      sandbox.stub(uut.useCases.tlMain, 'handleNewTx').resolves()
+      sandbox.stub(uut.adapters.wallet.bchjs.Util, 'sleep').resolves()
 
       const result = await uut.checkForNewTxs()
 
