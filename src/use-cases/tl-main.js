@@ -9,6 +9,8 @@ const config = require('../../config')
 const Trade = require('./trade')
 // const wlogger = require('./wlogger')
 
+let _this
+
 class TLMain {
   constructor (localConfig = {}) {
     // Dependency Injection
@@ -35,6 +37,8 @@ class TLMain {
 
     // Constants manipulated by unit test.
     this.dsSleepTime = 5000
+
+    _this = this
   }
 
   // Initialize the app by setting the state.
@@ -99,26 +103,28 @@ class TLMain {
   async updateState () {
     try {
       // Get balances of wallet
-      const balance = await this.adapters.wallet.getBalances()
+      const balance = await _this.adapters.wallet.getBalances()
       // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
 
       // Calculate the sat and BCH balances.
-      this.state.satBalance = balance.sats
-      this.state.bchBalance = this.adapters.wallet.bchjs.BitcoinCash.toBitcoinCash(balance.sats)
+      _this.state.satBalance = balance.sats
+      _this.state.bchBalance = _this.adapters.wallet.bchjs.BitcoinCash.toBitcoinCash(balance.sats)
 
       // Get the balance of the app token.
-      const targetToken = balance.tokens.filter(x => x.tokenId === this.config.slpTokenId)
+      const targetToken = balance.tokens.filter(x => x.tokenId === _this.config.slpTokenId)
       // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
-      this.state.tokenBalance = targetToken[0].qty
+      _this.state.tokenBalance = targetToken[0].qty
 
       // Get the spot price of BCH
-      const usdPerBch = await this.adapters.wallet.wallet.getUsd()
-      this.state.usdPerBch = this.adapters.wallet.bchjs.Util.floor2(usdPerBch)
+      const usdPerBch = await _this.adapters.wallet.wallet.getUsd()
+      _this.state.usdPerBch = _this.adapters.wallet.bchjs.Util.floor2(usdPerBch)
 
       // Get the effective token balance:
-      this.state.effectiveTokenBalance = this.getEffectiveTokenBalance(this.state.bchBalance)
+      _this.state.effectiveTokenBalance = _this.getEffectiveTokenBalance(_this.state.bchBalance)
 
       console.log('App state updated.')
+
+      return _this.state
     } catch (err) {
       console.log('Error in use-cases/tl-main.js/updateState()')
       throw err
@@ -157,26 +163,17 @@ class TLMain {
         throw new Error('txid required when calling handleNewTx()')
       }
 
-      console.log(`handleNewTX() processing TXID: ${txid}`)
+      const tradeObj = {
+        txid,
+        updateState: this.updateState
+      }
 
       // Add the new TXID to the seenTxs state.
       this.state.seenTxs.push(txid)
 
-      // Wait 5 seconds and then check the double-spend proof
-      await this.adapters.wallet.wallet.bchjs.Util.sleep(this.dsSleepTime)
-      const dsProof = await this.adapters.wallet.wallet.bchjs.DSProof.getDSProof(txid)
-      // console.log('dsProof: ', dsProof)
-
-      // Exit if dsProof is *not* null
-      if (dsProof !== null) {
-        console.log(`Double spend detected! Ignoring TXID ${txid}`)
-        return false
-      }
-
-      // Update the apps state before processing the new TX.
-      await this.updateState()
-
-      const result = await this.trade.processNewTradeTx(txid, this.state)
+      // Process the trade transaction with automatic retry.
+      const result = await this.trade.processNewTradeTx(tradeObj)
+      console.log('handleNewTx() result: ', result)
 
       return result
     } catch (err) {

@@ -30,7 +30,7 @@ class Trade {
     this.config = config
     this.queue = new PQueue({ concurrency: 1 })
 
-    this.state = {}
+    // this.state = {}
 
     // Constants modified in unit tests
     this.numOfRetries = 5
@@ -99,14 +99,16 @@ class Trade {
   // a new trade TXID is detected. This is largely a wrapper for the
   // pRetryProcessTx() function, which add automatic retry when errors are
   // encountered.
-  async processNewTradeTx (txid, state) {
+  // async processNewTradeTx (txid, state) {
+  async processNewTradeTx (tradeObj) {
     try {
-      console.log(`Processing trade TX: ${txid}`)
+      // console.log(`Processing trade TX: ${txid}`)
 
       // The parent tl-main.js will pass in an updated state.
-      this.state = state
+      // this.state = state
 
-      const result = await this.queue.add(() => this.pRetryProcessTx(txid))
+      const result = await this.queue.add(() => this.pRetryProcessTx(tradeObj))
+      console.log('processNewTradeTx() result: ', result)
 
       return result
     } catch (err) {
@@ -117,11 +119,13 @@ class Trade {
 
   // This function wraps the tryProcessTx() function with the p-retry library.
   // This will allow it to try multiple times in the event of an error.
-  async pRetryProcessTx (txid) {
+  async pRetryProcessTx (tradeObj) {
     try {
-      if (!txid) throw new Error('txid is undefined')
+      // const { txid } = tradeObj
 
-      const result = await pRetry(() => _this.processTx(txid), {
+      // if (!txid) throw new Error('txid is undefined')
+
+      const result = await pRetry(() => _this.processTx(tradeObj), {
         // This function is called in the event of an error.
         onFailedAttempt: async (error) => {
           //   failed attempt.
@@ -214,9 +218,28 @@ class Trade {
   }
 
   // Business logic for process a trade TX.
-  async processTx (txid) {
+  async processTx (tradeObj) {
     try {
+      const { txid, updateState } = tradeObj
+
+      if (!txid) throw new Error('txid is undefined')
+
       console.log(`Processing trade TX: ${txid}`)
+
+      // Wait 5 seconds and then check the double-spend proof
+      await this.adapters.wallet.wallet.bchjs.Util.sleep(this.dsSleepTime)
+      const dsProof = await this.adapters.wallet.wallet.bchjs.DSProof.getDSProof(txid)
+      // console.log('dsProof: ', dsProof)
+
+      // Exit if dsProof is *not* null
+      if (dsProof !== null) {
+        console.log(`Double spend detected! Ignoring TXID ${txid}`)
+        console.log(`dsProof: ${JSON.stringify(dsProof, null, 2)}`)
+        return false
+      }
+
+      // Update the apps state before processing the new TX.
+      const state = await updateState()
 
       // Get the BCH address for the app.
       const bchAddr = this.adapters.wallet.wallet.walletInfo.cashAddress
@@ -244,8 +267,21 @@ class Trade {
       if (isTokenTx) {
         // User sent tokens, and wants to receive BCH.
 
-        const bchOut = this.exchangeTokensForBCH({ tokensIn: isTokenTx })
+        const bchOut = this.exchangeTokensForBCH({ tokensIn: isTokenTx, state })
         console.log(`Sending ${bchOut} BCH to ${userAddr}.`)
+
+        const amountSat = this.adapters.wallet.bchjs.BitcoinCash.toSatoshi(bchOut)
+        console.log('sats: ', amountSat)
+
+        const receivers = [{
+          address: userAddr,
+          amountSat
+        }]
+
+        const txidOut = await this.adapters.wallet.wallet.send(receivers)
+        console.log(`txidOut: ${txidOut[0]}\n`)
+
+        return txidOut[0]
       } else {
         // User sent BCH, and wants to receive tokens.
 
@@ -264,16 +300,16 @@ class Trade {
           )
         }
 
-        const tokensOut = this.exchangeBCHForTokens({ bchQty })
+        const tokensOut = this.exchangeBCHForTokens({ bchQty, state })
         console.log(`Sending ${tokensOut} tokens to ${userAddr}`)
 
         const txidOut = await this.adapters.wallet.sendTokens(userAddr, tokensOut)
-        console.log(`txidOut: ${txidOut}\n`)
+        console.log(`txidOut: ${txidOut[0]}\n`)
 
-        return txidOut
+        return txidOut[0]
       }
 
-      return true
+      // return true
     } catch (err) {
       console.error('Error in use-cases/trade.js/processTx()')
       throw err
@@ -286,18 +322,18 @@ class Trade {
   // This function assumes the app state has been updated before being called.
   exchangeBCHForTokens (inObj) {
     try {
-      const { bchQty } =
+      const { bchQty, state } =
         inObj
 
       // Initialize variables.
-      const bch1 = this.state.bchBalance
+      const bch1 = state.bchBalance
       let token1
       let token2 = 0
       const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
       const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
 
       // Subtract 270 satoshi tx fee
-      const bch2 = bch1 + bchQty - 0.0000027
+      const bch2 = this.adapters.wallet.bchjs.Util.floor8(bch1 + bchQty - 0.0000027)
 
       // Use natural logarithm if wallet balance is less than 250 BCH.
       if (bch1 < bchOriginalBalance) {
@@ -311,6 +347,9 @@ class Trade {
         token1 = tokenOriginalBalance * (bch1 / bchOriginalBalance - 1)
         token2 = tokenOriginalBalance * (bch2 / bchOriginalBalance - 1)
       }
+
+      token1 = this.adapters.wallet.bchjs.Util.floor8(token1)
+      token2 = this.adapters.wallet.bchjs.Util.floor8(token2)
 
       const tokensOut = this.adapters.wallet.bchjs.Util.floor8(Math.abs(token2 - token1))
 
@@ -331,13 +370,13 @@ class Trade {
   // This function assumes the app state has been updated before being called.
   exchangeTokensForBCH (inObj) {
     try {
-      const { tokensIn } = inObj
+      const { tokensIn, state } = inObj
 
       // Initialize variables.
       let token1 = 0
       let token2 = 0
       let bch2 = 0
-      const bch1 = this.state.bchBalance
+      const bch1 = state.bchBalance
       const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
       const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
 
@@ -352,6 +391,7 @@ class Trade {
         bch2 =
           bchOriginalBalance *
           Math.pow(Math.E, (-1 * token2) / tokenOriginalBalance)
+        bch2 = this.adapters.wallet.bchjs.Util.floor8(bch2)
       } else {
         // Use linear equation if wallet balance is greater than (or equal to) 250 BCH.
 
@@ -360,6 +400,7 @@ class Trade {
         token2 = token1 + tokensIn
 
         bch2 = bchOriginalBalance * (1 - token2 / tokenOriginalBalance)
+        bch2 = this.adapters.wallet.bchjs.Util.floor8(bch2)
       }
 
       let bchOut = bch2 - bch1 - 0.0000027 // Subtract 270 satoshi tx fee

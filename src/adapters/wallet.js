@@ -46,6 +46,9 @@ class Wallet {
   // Get balances of BCH and tokens.
   async getBalances () {
     try {
+      // Update the wallet UTOXs.
+      await this.wallet.getUtxos()
+
       const bchBalance = await this.wallet.getBalance()
       // console.log('bchBalance: ', bchBalance)
 

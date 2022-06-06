@@ -28,6 +28,9 @@ class TimerControllers {
       newTxCheckTime: 60000 * 0.3
     }
 
+    // Constants manipulated by unit tests
+    this.timeBetweenTXs = 60000 * 1
+
     _this = this
 
     this.startTimers()
@@ -59,8 +62,11 @@ class TimerControllers {
         console.log(`...${newTxs.length} new txs found!`)
 
         for (let i = 0; i < newTxs.length; i++) {
-          console.log(`Processing ${newTxs[i]}`)
+          console.log(`Timer Controller checkForNewTxs() processing TXID ${newTxs[i]}`)
           await _this.useCases.tlMain.handleNewTx(newTxs[i])
+
+          // Wait a minimum amount of time between processing transactions.
+          await _this.adapters.wallet.bchjs.Util.sleep(_this.timeBetweenTXs)
         }
       } else {
         console.log('...no new TXs found.')
