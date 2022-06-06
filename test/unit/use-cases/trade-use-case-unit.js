@@ -44,8 +44,12 @@ describe('#trade-use-cases', () => {
   })
 
   describe('#checkForNewTxs', () => {
-    it('placeholder', () => {
-      uut.checkForNewTxs()
+    it('should signal that new transactions are being detected', async () => {
+      sandbox.stub(uut, 'detectNewTxs').resolves(true)
+
+      const result = await uut.checkForNewTxs()
+
+      assert.equal(result, true)
     })
   })
 
@@ -103,6 +107,272 @@ describe('#trade-use-cases', () => {
         assert.fail('Unexpected result')
       } catch (err) {
         assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#processNewTradeTx', () => {
+    it('should wrap the auto-retry method', async () => {
+      // Mock dependencies
+      sandbox.stub(uut.queue, 'add').resolves(true)
+
+      const result = await uut.processNewTradeTx()
+
+      assert.equal(result, true)
+    })
+
+    it('should catch and throw errors', async () => {
+      try {
+        // Force an error
+        sandbox.stub(uut.queue, 'add').rejects(new Error('test error'))
+
+        await uut.processNewTradeTx()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'test error')
+      }
+    })
+  })
+
+  describe('#handleProcessError', () => {
+    it('should handle general error', async () => {
+      // Prepare mock data
+      const error = new Error('test error')
+      error.retriesLeft = 2
+      uut.timeBetweenRetries = 1
+
+      const result = await uut.handleProcessError(error)
+
+      assert.equal(result, true)
+    })
+
+    it('should abort retry for invalid OP_RETURN', async () => {
+      try {
+        // Prepare mock data
+        const error = new Error('Unsupported address format')
+        error.retriesLeft = 2
+        uut.timeBetweenRetries = 1
+
+        await uut.handleProcessError(error)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Invalid OP_RETURN')
+      }
+    })
+
+    it('should abort retry for non-PSF token', async () => {
+      try {
+        // Prepare mock data
+        const error = new Error('Dust recieved.')
+        error.retriesLeft = 2
+        uut.timeBetweenRetries = 1
+
+        await uut.handleProcessError(error)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Dust or non-PSF token')
+      }
+    })
+
+    it('should abort retry for code 64', async () => {
+      try {
+        // Prepare mock data
+        const error = new Error('code 64')
+        error.retriesLeft = 2
+        uut.timeBetweenRetries = 1
+
+        await uut.handleProcessError(error)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Exchange aborted because of dust.')
+      }
+    })
+
+    it('should abort retry for dust', async () => {
+      try {
+        // Prepare mock data
+        const error = new Error('dust')
+        error.retriesLeft = 2
+        uut.timeBetweenRetries = 1
+
+        await uut.handleProcessError(error)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'Exchange aborted because of dust.')
+      }
+    })
+
+    it('should send email once retries run out', async () => {
+      // Prepare mock data
+      const error = new Error('test error')
+      error.retriesLeft = 0
+      uut.timeBetweenRetries = 1
+      uut.config.useEmailAlerts = true
+
+      const result = await uut.handleProcessError(error)
+
+      assert.equal(result, true)
+    })
+  })
+
+  describe('#pRetryProcessTx-function', () => {
+    it('should return output from processTx', async () => {
+      try {
+        // console.log('init test')
+        const obj = {
+          txid: '14df82e3ec54fa0227531309f7189ed695bafad6f5062407d3a528fbeddc4a09',
+          bchBalance: 12.01044695,
+          tokenBalance: 1
+        }
+
+        sandbox.stub(uut, 'processTx').resolves(libMockData.processTx)
+
+        const result = await uut.pRetryProcessTx(obj)
+        assert.hasAllKeys(result, ['txid', 'bchBalance', 'tokenBalance'])
+      } catch (error) {
+        console.log(error)
+        // assert.include(error.message, `Error in "pRetryProcessTx" functions`)
+      }
+    })
+
+    it('should catch and report errors', async () => {
+      // Force desired code path
+      sandbox.stub(uut, 'pRetry').rejects(new Error('test error'))
+
+      const result = await uut.pRetryProcessTx()
+
+      assert.equal(result, null)
+    })
+  })
+
+  describe('#processTx', () => {
+    it('should return false if double-spend is detected', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(true)
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      const result = await uut.processTx(tradeObj)
+
+      assert.equal(result, false)
+    })
+
+    it('should return null tx originated from app wallet', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      const appAddr = uut.adapters.wallet.wallet.walletInfo.cashAddress
+      sandbox.stub(uut.adapters.txs, 'getUserAddr2').resolves(appAddr)
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      const result = await uut.processTx(tradeObj)
+
+      assert.equal(result, null)
+    })
+
+    it('should process a token TX and return the TXID', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      sandbox.stub(uut.adapters.txs, 'getUserAddr2').resolves('fake-addr')
+      sandbox.stub(uut.adapters.slp, 'tokenTxInfo').resolves(10)
+      sandbox.stub(uut, 'exchangeTokensForBCH').returns(0.001)
+      sandbox.stub(uut.adapters.wallet.wallet, 'send').resolves(['fake-txid'])
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      const result = await uut.processTx(tradeObj)
+
+      assert.equal(result, 'fake-txid')
+    })
+
+    it('should process a BCH TX and return the TXID', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      sandbox.stub(uut.adapters.txs, 'getUserAddr2').resolves('fake-addr')
+      sandbox.stub(uut.adapters.slp, 'tokenTxInfo').resolves(false)
+      sandbox.stub(uut.adapters.bch, 'recievedBch').resolves(0.001)
+      sandbox.stub(uut, 'exchangeBCHForTokens').returns(10)
+      sandbox.stub(uut.adapters.wallet, 'sendTokens').resolves(['fake-txid'])
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      const result = await uut.processTx(tradeObj)
+
+      assert.equal(result, 'fake-txid')
+    })
+
+    it('should throw an error if bch quantity can not be determined', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      sandbox.stub(uut.adapters.txs, 'getUserAddr2').resolves('fake-addr')
+      sandbox.stub(uut.adapters.slp, 'tokenTxInfo').resolves(false)
+      sandbox.stub(uut.adapters.bch, 'recievedBch').resolves('abc')
+      // sandbox.stub(uut, 'exchangeBCHForTokens').returns(10)
+      // sandbox.stub(uut.adapters.wallet, 'sendTokens').resolves(['fake-txid'])
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      try {
+        await uut.processTx(tradeObj)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'bchQty could not be converted to a number.')
+      }
+    })
+
+    it('should throw an error if dust or other token is recieved', async () => {
+      // Force desired code path
+      uut.dsSleepTime = 1
+      sandbox.stub(uut.adapters.wallet.wallet.bchjs.DSProof, 'getDSProof').resolves(null)
+      sandbox.stub(uut.adapters.txs, 'getUserAddr2').resolves('fake-addr')
+      sandbox.stub(uut.adapters.slp, 'tokenTxInfo').resolves(false)
+      sandbox.stub(uut.adapters.bch, 'recievedBch').resolves(0.00000546)
+      // sandbox.stub(uut, 'exchangeBCHForTokens').returns(10)
+      // sandbox.stub(uut.adapters.wallet, 'sendTokens').resolves(['fake-txid'])
+
+      // Mock test data
+      const tradeObj = {
+        txid: 'fake-txid',
+        updateState: () => {}
+      }
+
+      try {
+        await uut.processTx(tradeObj)
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, "Dust recieved. This is probably a token tx that SLPDB doesn't know about.")
       }
     })
   })

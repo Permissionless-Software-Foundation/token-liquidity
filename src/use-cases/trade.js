@@ -29,6 +29,7 @@ class Trade {
     // Encapsulate dependencies
     this.config = config
     this.queue = new PQueue({ concurrency: 1 })
+    this.pRetry = pRetry
 
     // this.state = {}
 
@@ -37,18 +38,6 @@ class Trade {
     this.timeBetweenRetries = 60000 * 1
 
     _this = this
-  }
-
-  // This function is called by a timer Controller to periodically check for
-  // new transactions sent to the apps wallet address.
-  async checkForNewTxs (seenTxs) {
-    const now = new Date()
-    const outStr = `${now.toLocaleString()}: Checking transactions... `
-    console.log(outStr)
-
-    const newTxids = await this.detectNewTxs({ seenTxs })
-
-    return newTxids
   }
 
   // seenTxs = array of txs that have already been processed.
@@ -95,6 +84,18 @@ class Trade {
     }
   }
 
+  // This function is called by a timer Controller to periodically check for
+  // new transactions sent to the apps wallet address.
+  async checkForNewTxs (seenTxs) {
+    const now = new Date()
+    const outStr = `${now.toLocaleString()}: Checking transactions... `
+    console.log(outStr)
+
+    const newTxids = await this.detectNewTxs({ seenTxs })
+
+    return newTxids
+  }
+
   // A top level function that is called by the parent tl-main.js library when
   // a new trade TXID is detected. This is largely a wrapper for the
   // pRetryProcessTx() function, which add automatic retry when errors are
@@ -102,13 +103,7 @@ class Trade {
   // async processNewTradeTx (txid, state) {
   async processNewTradeTx (tradeObj) {
     try {
-      // console.log(`Processing trade TX: ${txid}`)
-
-      // The parent tl-main.js will pass in an updated state.
-      // this.state = state
-
       const result = await this.queue.add(() => this.pRetryProcessTx(tradeObj))
-      console.log('processNewTradeTx() result: ', result)
 
       return result
     } catch (err) {
@@ -121,67 +116,11 @@ class Trade {
   // This will allow it to try multiple times in the event of an error.
   async pRetryProcessTx (tradeObj) {
     try {
-      // const { txid } = tradeObj
-
-      // if (!txid) throw new Error('txid is undefined')
-
-      const result = await pRetry(() => _this.processTx(tradeObj), {
+      const result = await this.pRetry(() => _this.processTx(tradeObj), {
         // This function is called in the event of an error.
-        onFailedAttempt: async (error) => {
-          //   failed attempt.
-          console.log(' ')
-          _this.adapters.wlogger.info(
-            `Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left. Waiting ${_this.timeBetweenRetries / 60000} minutes before trying again.`
-          )
-
-          _this.adapters.wlogger.error('error caught by pRetryProcessTx(): ', error)
-          console.log(' ')
-
-          // Abort for dust attacks
-          if (error.message.indexOf('Unsupported address format') > -1) {
-            throw new pRetry.AbortError('Invalid OP_RETURN')
-          }
-
-          // Abort for non-PSF tokens
-          if (error.message.indexOf('Dust recieved.') > -1) {
-            throw new pRetry.AbortError('Dust or non-PSF token')
-          }
-
-          // Abort for dust
-          if (
-            error.message.includes('code 64') ||
-            error.message.includes('dust')
-          ) {
-            throw new pRetry.AbortError('Exchange aborted because of dust.')
-          }
-
-          // If the number of retries has been exhausted, send out an email alert.
-          if (!error.retriesLeft && _this.config.useEmailAlerts) {
-            // Try to convert the error object into a JSON string. If that's not possible,
-            // then try to copy the message.
-            let errorStr = ''
-            try {
-              errorStr = JSON.stringify(error, null, 2)
-            } catch {
-              errorStr = error.message
-            }
-
-            console.log('placeholder for sending an email')
-            console.log(errorStr)
-            // const emailObj = {
-            //   callerMsg: 'lib/slp2.js/handleMoveTokenError()',
-            //   errorObj: errorStr
-            // }
-            // await _this.email.sendTLEmailAlert(emailObj)
-          }
-
-          await this.adapters.wallet.bchjs.Util.sleep(this.timeBetweenRetries) // Sleep for 4 minutes
-        },
+        onFailedAttempt: this.handleProcessError,
         retries: this.numOfRetries // Retry 5 times
       })
-
-      // Reset the global object to an empty object.
-      // _this.setObjProcessTx({})
 
       return result
     } catch (error) {
@@ -209,12 +148,66 @@ class Trade {
         // await _this.email.sendTLEmailAlert(emailObj)
       }
 
-      // Note: Do not throw an error, as that will prevent any other transactions
+      // Note: Do not throw an error, as that will cause all other transactions
       // in the queue to be ignored.
 
       // This return value will immediately process the next transaction.
-      return { txid: null }
+      return null
     }
+  }
+
+  // Handles failures when an error occurs while processing a new trade tx.
+  // This function is called by this.pRetryProcessTx()
+  async handleProcessError (error) {
+    console.log(' ')
+    _this.adapters.wlogger.info(
+      `Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left. Waiting ${_this.timeBetweenRetries / 60000} minutes before trying again.`
+    )
+
+    _this.adapters.wlogger.error('error caught by pRetryProcessTx(): ', error)
+    console.log(' ')
+
+    // Abort for dust attacks
+    if (error.message.indexOf('Unsupported address format') > -1) {
+      throw new pRetry.AbortError('Invalid OP_RETURN')
+    }
+
+    // Abort for non-PSF tokens
+    if (error.message.indexOf('Dust recieved.') > -1) {
+      throw new pRetry.AbortError('Dust or non-PSF token')
+    }
+
+    // Abort for dust
+    if (
+      error.message.includes('code 64') ||
+      error.message.includes('dust')
+    ) {
+      throw new pRetry.AbortError('Exchange aborted because of dust.')
+    }
+
+    // If the number of retries has been exhausted, send out an email alert.
+    if (!error.retriesLeft && _this.config.useEmailAlerts) {
+      // Try to convert the error object into a JSON string. If that's not possible,
+      // then try to copy the message.
+      let errorStr = ''
+      // try {
+      errorStr = JSON.stringify(error, null, 2)
+      // } catch {
+      //   errorStr = error.message
+      // }
+
+      console.log('placeholder for sending an email')
+      console.log(errorStr)
+      // const emailObj = {
+      //   callerMsg: 'lib/slp2.js/handleMoveTokenError()',
+      //   errorObj: errorStr
+      // }
+      // await _this.email.sendTLEmailAlert(emailObj)
+    }
+
+    await _this.adapters.wallet.bchjs.Util.sleep(_this.timeBetweenRetries) // Sleep for 4 minutes
+
+    return true
   }
 
   // Business logic for process a trade TX.
@@ -294,7 +287,7 @@ class Trade {
           throw new Error('bchQty could not be converted to a number.')
         }
 
-        if (bchQty < 0.00000547) {
+        if (bchQty < 0.00000548) {
           throw new Error(
             "Dust recieved. This is probably a token tx that SLPDB doesn't know about."
           )

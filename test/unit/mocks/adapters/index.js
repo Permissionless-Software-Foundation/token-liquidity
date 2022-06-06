@@ -44,11 +44,13 @@ const localdb = {
 
 const bch = {
   getTransactions: () => {},
-  justTxs: () => {}
+  justTxs: () => {},
+  recievedBch: () => {}
 }
 
 const txs = {
-  getTxConfirmations: () => {}
+  getTxConfirmations: () => {},
+  getUserAddr2: () => {}
 }
 
 const slpWallet = new BchWallet(undefined, { noUpdate: true })
@@ -61,7 +63,18 @@ const wallet = {
       sats: 100000,
       tokens: [{ tokenId: config.slpTokenId, qty: 10000 }]
     }
-  }
+  },
+  sendTokens: () => {}
 }
 
-module.exports = { localdb, bch, txs, wallet }
+const wlogger = {
+  info: () => {},
+  debug: () => {},
+  error: () => {}
+}
+
+const slp = {
+  tokenTxInfo: () => {}
+}
+
+module.exports = { localdb, bch, txs, wallet, wlogger, slp }

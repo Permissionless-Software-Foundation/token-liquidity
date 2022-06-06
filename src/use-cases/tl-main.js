@@ -173,7 +173,8 @@ class TLMain {
 
       // Process the trade transaction with automatic retry.
       const result = await this.trade.processNewTradeTx(tradeObj)
-      console.log('handleNewTx() result: ', result)
+
+      if (result !== null) { console.log('Trade completed with TXID: ', result) }
 
       return result
     } catch (err) {
