@@ -211,7 +211,7 @@ class Trade {
   }
 
   // Business logic for process a trade TX.
-  async processTx (tradeObj) {
+  async processTx (tradeObj = {}) {
     try {
       const { txid, updateState } = tradeObj
 
@@ -313,7 +313,7 @@ class Trade {
   // the user sent to the app.
   // This function only uses the BCH to calculate the token output.
   // This function assumes the app state has been updated before being called.
-  exchangeBCHForTokens (inObj) {
+  exchangeBCHForTokens (inObj = {}) {
     try {
       const { bchQty, state } =
         inObj
@@ -361,7 +361,7 @@ class Trade {
 
   // User sent in tokens, exchange them for BCH.
   // This function assumes the app state has been updated before being called.
-  exchangeTokensForBCH (inObj) {
+  exchangeTokensForBCH (inObj = {}) {
     try {
       const { tokensIn, state } = inObj
 

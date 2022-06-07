@@ -375,5 +375,163 @@ describe('#trade-use-cases', () => {
         assert.include(err.message, "Dust recieved. This is probably a token tx that SLPDB doesn't know about.")
       }
     })
+
+    it('should throw an error if txid is not included', async () => {
+      try {
+        await uut.processTx()
+
+        assert.fail('Unexpected result')
+      } catch (err) {
+        assert.include(err.message, 'txid is undefined')
+      }
+    })
+  })
+
+  // Based on the equation-visualizations.ods spreadsheet. These numbers come
+  // from the logarithmic part of the curve.
+  describe('exchangeBCHForTokens', () => {
+    it('should calculate log values in the spreadsheet', () => {
+      const inObj = {
+        bchQty: 7.86785736,
+        state: {
+          bchBalance: 4.57890972
+        }
+      }
+
+      const result = uut.exchangeBCHForTokens(inObj)
+      // console.log('result: ', result)
+
+      assert.equal(
+        Math.floor(result),
+        49999,
+        'Should match spreadsheet'
+      )
+    })
+
+    // Based on the equation-visualizations.ods spreadsheet. These numbers come
+    // from the log part of the curve.
+    it('should calculate log values in the spreadsheet', () => {
+      const inObj = {
+        bchQty: 11.81408491,
+        state: {
+          bchBalance: 112.33224102
+        }
+      }
+
+      const result = uut.exchangeBCHForTokens(inObj)
+      // console.log('result: ', result)
+
+      assert.equal(
+        Math.floor(result),
+        4999,
+        'Should match spreadsheet'
+      )
+    })
+
+    // Based on the equation-visualizations.ods spreadsheet. These numbers come
+    // from the linear part of the curve.
+    it('should calculate linear values in the spreadsheet', () => {
+      const inObj = {
+        bchQty: 25,
+        state: {
+          bchBalance: 300
+        }
+      }
+
+      const result = uut.exchangeBCHForTokens(inObj)
+      // console.log('result: ', result)
+
+      assert.equal(
+        Math.floor(result),
+        4999,
+        'Should match spreadsheet'
+      )
+    })
+
+    // Ensures continuity with older version of the token-liquidity app.
+    it('should match values on website', () => {
+      const inObj = {
+        bchQty: 1,
+        state: {
+          bchBalance: 28.75678834
+        }
+      }
+
+      const result = uut.exchangeBCHForTokens(inObj)
+      // console.log('result: ', result)
+
+      assert.equal(
+        Math.floor(result),
+        1709
+      )
+    })
+
+    it('should throw error if bchBalance is not defined', async () => {
+      try {
+        await uut.exchangeBCHForTokens({})
+      } catch (error) {
+        assert.include(error.message, 'Cannot read')
+      }
+    })
+  })
+
+  // Based on the equation-visualizations.ods spreadsheet. These numbers come
+  // from the logarithmic part of the curve.
+  describe('exchangeTokensForBCH', () => {
+    it('should calculate log values in the spreadsheet', () => {
+      const inObj = {
+        tokensIn: 50000,
+        state: {
+          bchBalance: 4.57890972
+        }
+      }
+
+      const result = uut.exchangeTokensForBCH(inObj)
+      // console.log('result: ', result)
+
+      // 4.57 - 1.68 = 2.89
+      assert.isAbove(result, 2.89)
+      assert.isBelow(result, 3)
+    })
+
+    it('should calculate log values in the spreadsheet', () => {
+      const inObj = {
+        tokensIn: 5000,
+        state: {
+          bchBalance: 124.146
+        }
+      }
+
+      const result = uut.exchangeTokensForBCH(inObj)
+      // console.log('result: ', result)
+
+      // 124.146 - 112.332 = 11.814
+      assert.isAbove(result, 11.8)
+      assert.isBelow(result, 12)
+    })
+
+    it('should calculate linear values in the spreadsheet', () => {
+      const inObj = {
+        tokensIn: 5000,
+        state: {
+          bchBalance: 300
+        }
+      }
+
+      const result = uut.exchangeTokensForBCH(inObj)
+      // console.log('result: ', result)
+
+      // 300 - 275 = 25
+      assert.isAbove(result, 25)
+      assert.isBelow(result, 26)
+    })
+
+    it('should throw error if bchBalance is not defined', async () => {
+      try {
+        await uut.exchangeTokensForBCH({})
+      } catch (error) {
+        assert.include(error.message, 'Cannot read')
+      }
+    })
   })
 })
