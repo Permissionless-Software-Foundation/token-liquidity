@@ -66,6 +66,9 @@ describe('#tl-main-use-cases', () => {
 
   describe('#initState', () => {
     it('should initialize the apps state', async () => {
+      // Mock dependencies
+      sandbox.stub(uut.adapters.wallet.wallet, 'getUsd').resolves(200)
+
       const result = await uut.initState()
 
       assert.equal(result, true)

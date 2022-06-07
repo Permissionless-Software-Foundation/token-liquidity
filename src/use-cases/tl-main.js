@@ -47,26 +47,6 @@ class TLMain {
   // - Calculate the spot exchange rate between BCH/PSF token.
   async initState () {
     try {
-      // Get balances of wallet
-      // const balance = await this.adapters.wallet.getBalances()
-      // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
-
-      // // Calculate the sat and BCH balances.
-      // this.state.satBalance = balance.sats
-      // this.state.bchBalance = this.adapters.wallet.bchjs.BitcoinCash.toBitcoinCash(balance.sats)
-      //
-      // // Get the balance of the app token.
-      // const targetToken = balance.tokens.filter(x => x.tokenId === this.config.slpTokenId)
-      // // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
-      // this.state.tokenBalance = targetToken[0].qty
-      //
-      // // Get the spot price of BCH
-      // const usdPerBch = await this.adapters.wallet.wallet.getUsd()
-      // this.state.usdPerBch = this.adapters.wallet.bchjs.Util.floor2(usdPerBch)
-      //
-      // // Get the effective token balance:
-      // this.state.effectiveTokenBalance = this.getEffectiveTokenBalance(this.state.bchBalance)
-
       await this.updateState()
 
       // Display the state of the wallet
