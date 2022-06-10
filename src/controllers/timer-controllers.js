@@ -66,6 +66,7 @@ class TimerControllers {
           await _this.useCases.tlMain.handleNewTx(newTxs[i])
 
           // Wait a minimum amount of time between processing transactions.
+          console.log(`Waiting ${_this.timeBetweenTXs / 60000} minutes between processing transactions.`)
           await _this.adapters.wallet.bchjs.Util.sleep(_this.timeBetweenTXs)
         }
       } else {
