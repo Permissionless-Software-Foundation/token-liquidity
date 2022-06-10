@@ -73,8 +73,10 @@ class PriceRESTControllerLib {
     // Get the effective token balance:
     const effBal = state.effectiveTokenBalance
 
+    console.log(`state: ${JSON.stringify(state, null, 2)}`)
+
     ctx.body = {
-      usdPerBCH: state.usdPerBCH,
+      usdPerBCH: state.usdPerBch,
       bchBalance: state.bchBalance,
       tokenBalance: effBal,
       usdPerToken: price
