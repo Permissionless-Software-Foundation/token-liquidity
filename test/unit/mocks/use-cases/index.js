@@ -46,6 +46,9 @@ class TLMain {
     this.trade = {
       checkForNewTxs: async () => []
     }
+
+    this.updateState = async () => {}
+    this.summarizeState = () => {}
   }
 
   handleNewTx() {

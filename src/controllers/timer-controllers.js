@@ -25,7 +25,7 @@ class TimerControllers {
     this.debugLevel = localConfig.debugLevel
 
     this.state = {
-      newTxCheckTime: 60000 * 0.5
+      newTxCheckTime: 60000 * 2
     }
 
     // Constants manipulated by unit tests
