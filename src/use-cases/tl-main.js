@@ -111,6 +111,17 @@ class TLMain {
     }
   }
 
+  // Print out a summary of the state of the wallet.
+  summarizeState () {
+    // Token per bch price:
+    const tokensPerBch = _this.trade.exchangeBCHForTokens({ bchQty: 1, state: _this.state })
+
+    const dolPerToken = _this.state.usdPerBch / tokensPerBch
+
+    this.adapters.wlogger.info(`Spot:: $/BCH: $${_this.state.usdPerBch}/BCH, ${tokensPerBch} tokens per BCH, $${dolPerToken} per token`)
+    _this.adapters.wlogger.info(`Wallet:: BCH: ${_this.state.bchBalance}, wallet token actual balance: ${_this.state.tokenBalance}, wallet effective token balance: ${_this.state.effectiveTokenBalance}`)
+  }
+
   // Returns the 'effective' token balance used when calculating an exchange.
   // This is based on the BCH balance and should be less than or equal to
   // the 'actual' token balance.

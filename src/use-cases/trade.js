@@ -87,10 +87,6 @@ class Trade {
   // This function is called by a timer Controller to periodically check for
   // new transactions sent to the apps wallet address.
   async checkForNewTxs (seenTxs) {
-    const now = new Date()
-    const outStr = `${now.toLocaleString()}: Checking transactions... `
-    console.log(outStr)
-
     const newTxids = await this.detectNewTxs({ seenTxs })
 
     return newTxids

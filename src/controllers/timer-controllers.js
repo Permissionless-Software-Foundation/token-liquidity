@@ -25,7 +25,7 @@ class TimerControllers {
     this.debugLevel = localConfig.debugLevel
 
     this.state = {
-      newTxCheckTime: 60000 * 2
+      newTxCheckTime: 60000 * 0.5
     }
 
     // Constants manipulated by unit tests
@@ -52,8 +52,15 @@ class TimerControllers {
       // Note: This should be the second command.
       clearInterval(_this.state.newTxCheckInterval)
 
-      const seenTxs = _this.useCases.tlMain.state.seenTxs
+      const now = new Date()
+      const outStr = `${now.toLocaleString()}: Checking transactions... `
+      console.log(outStr)
 
+      // Update and print out the state of the apps wallet.
+      await _this.useCases.tlMain.updateState()
+      _this.useCases.tlMain.summarizeState()
+
+      const seenTxs = _this.useCases.tlMain.state.seenTxs
       const newTxs = await _this.useCases.tlMain.trade.checkForNewTxs(seenTxs)
       // console.log(`newTxs: ${JSON.stringify(newTxs, null, 2)}`)
 
@@ -70,7 +77,7 @@ class TimerControllers {
           await _this.adapters.wallet.bchjs.Util.sleep(_this.timeBetweenTXs)
         }
       } else {
-        console.log('...no new TXs found.')
+        console.log('...no new TXs found.\n')
       }
 
       // Enable timer interval after processing.
