@@ -81,11 +81,7 @@ class TLUtils {
         return walletInfo
       }
 
-      if (config.NETWORK === 'testnet') {
-        walletInfo = require(`${__dirname.toString()}/../../wallet-test.json`)
-      } else {
-        walletInfo = require(`${__dirname.toString()}/../../wallet-main.json`)
-      }
+      walletInfo = require(`${__dirname.toString()}/../../wallet-main.json`)
       // console.log(`walletInfo in slp: ${JSON.stringify(walletInfo, null, 2)}`)
 
       return walletInfo

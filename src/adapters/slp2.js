@@ -32,7 +32,7 @@ class SLP {
     this.config = config
     this.tlUtils = new TLUtils()
     this.email = new Email()
-    this.walletInfo = this.tlUtils.openWallet()
+    // this.walletInfo = this.tlUtils.openWallet()
     // console.log(`walletInfo: ${JSON.stringify(this.walletInfo, null, 2)}`);
 
     // Determine the environment
@@ -156,8 +156,9 @@ class SLP {
       }
 
       // Open the wallet controlling the tokens
-      const walletInfo = this.tlUtils.openWallet()
-      const mnemonic = walletInfo.mnemonic
+      // const walletInfo = this.tlUtils.openWallet()
+      // const mnemonic = walletInfo.mnemonic
+      const mnemonic = this.config.mnemonic
 
       // root seed buffer
       const rootSeed = await this.bchjs.Mnemonic.toSeed(mnemonic)
