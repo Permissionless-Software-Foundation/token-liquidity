@@ -50,7 +50,8 @@ describe('#tl-main-use-cases', () => {
       const result = await uut.getEffectiveTokenBalance(bchBalance)
       // console.log('result: ', result)
 
-      assert.equal(result, 149996.31356401)
+      // assert.equal(result, 149996.31356401)
+      assert.equal(result, 57669.477268)
     })
 
     it('should throw error if bchBalance is not provided', async () => {

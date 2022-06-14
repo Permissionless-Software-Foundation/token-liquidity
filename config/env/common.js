@@ -18,8 +18,8 @@ configOut = {
   logPass: process.env.LOGPASS ? process.env.LOGPASS : 'test',
 
   // These variables determine the exchange rate curve.
-  TOKENS_QTY_ORIGINAL: 50000,
-  BCH_QTY_ORIGINAL: 250,
+  TOKENS_QTY_ORIGINAL: 25000,
+  BCH_QTY_ORIGINAL: 125,
 
   // Email notifications settings.
   useEmailAlerts: process.env.USE_EMAIL_ALERTS
