@@ -4,7 +4,7 @@
 
 const assert = require('chai').assert
 
-const ContactLib = require('../../src/lib/contact')
+const ContactLib = require('../../src/adapters/contact')
 let uut
 
 describe('#contact', () => {

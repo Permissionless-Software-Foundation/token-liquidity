@@ -8,7 +8,7 @@ process.env.NETWORK = 'mainnet'
 
 const config = require('../../config')
 
-const BCH = require('../../src/lib/bch')
+const BCH = require('../../src/adapters/bch')
 const bch = new BCH(config)
 
 describe('#bch.js', () => {

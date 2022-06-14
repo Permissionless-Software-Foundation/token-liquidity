@@ -51,12 +51,23 @@ configOut = {
   SLP_TOKEN_ID:
     process.env.SLP_TOKEN_ID ||
     'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
+  slpTokenId:
+    process.env.SLP_TOKEN_ID ||
+    'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
 
   // bch-js settings.
   MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v5/',
   BCHLIB: BCHJS,
+  getAPITokenAtStartup: !process.env.DO_NOT_GET_JWT,
 
-  blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch'
+  blockchain: process.env.BLOCKCHAIN ? process.env.BLOCKCHAIN : 'bch',
+
+  fullstackAuthServer: process.env.FULLSTACK_AUTH ? process.env.FULLSTACK_AUTH : 'https://auth.fullstack.cash',
+  fullstackLogin: process.env.FULLSTACKLOGIN ? process.env.FULLSTACKLOGIN : 'demo@demo.com',
+  fullstackPass: process.env.FULLSTACKPASS ? process.env.FULLSTACKPASS : 'demo',
+
+  // Placeholder. This expected to be overwritten by an environment variable.
+  mnemonic: process.env.MNEMONIC ? process.env.MNEMONIC : 'drum salute decline increase earth cloth tobacco gospel appear motor fever soft'
 }
 
 module.exports = configOut

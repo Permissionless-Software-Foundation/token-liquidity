@@ -6,7 +6,7 @@ const assert = require('chai').assert
 
 const config = require('../../config')
 
-const SLP2 = require('../../src/lib/slp2')
+const SLP2 = require('../../src/adapters/slp2')
 const slp2 = new SLP2(config)
 
 describe('#slp2', () => {

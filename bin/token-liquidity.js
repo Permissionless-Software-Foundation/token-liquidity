@@ -18,11 +18,11 @@ const jwtLib = new JwtLib({
 })
 
 // App utility functions library.
-const TLUtils = require('../src/lib/util')
+const TLUtils = require('../src/adapters/util')
 const tlUtil = new TLUtils()
 
 // Email contact library.
-const Email = require('../src/lib/contact')
+const Email = require('../src/adapters/contact')
 const email = new Email()
 
 // Check all environment variables before starting the app.
@@ -37,8 +37,8 @@ try {
 }
 
 // const SLP = require('../src/lib/slp')
-const SLP2 = require('../src/lib/slp2')
-const BCH = require('../src/lib/bch')
+const SLP2 = require('../src/adapters/slp2')
+const BCH = require('../src/adapters/bch')
 let bch, slp2
 // let slp = new SLP(config)
 // let bch = new BCH(config)
@@ -49,14 +49,14 @@ const queue = new PQueue({ concurrency: 1 })
 // const Transactions = require('../src/lib/transactions')
 // const txs = new Transactions()
 
-const TokenLiquidity = require('../src/lib/token-liquidity')
+const TokenLiquidity = require('../src/adapters/token-liquidity')
 const lib = new TokenLiquidity()
 
 // Add the queue to the token-liquidity library
 lib.queue = queue
 
 // Winston logger
-const wlogger = require('../src/lib/wlogger')
+const wlogger = require('../src/adapters/wlogger')
 
 const FIVE_MINUTES = 60000 * 5
 const CONSOLIDATE_INTERVAL = 60000 * 100

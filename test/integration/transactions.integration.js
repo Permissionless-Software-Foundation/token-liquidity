@@ -6,7 +6,7 @@ const assert = require('chai').assert
 
 process.env.NETWORK = 'mainnet'
 
-const Transactions = require('../../src/lib/transactions')
+const Transactions = require('../../src/adapters/transactions')
 const transactions = new Transactions()
 
 describe('#transactions.js', () => {

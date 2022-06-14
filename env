@@ -2,7 +2,7 @@
 FULLSTACKLOGIN=demo@demo.com
 FULLSTACKPASS=demo
 NETWORK=mainnet
-REST_URL=https://bchn.fullstack.cash/v4/
+REST_URL=https://bchn.fullstack.cash/v5/
 
 # Set wallet variables
 BCH145ADDR=bitcoincash:qzsyha8qtqmj3tvey7dw5fqf203ytj7mpqqkw6cc65

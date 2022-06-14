@@ -17,13 +17,11 @@ const cors = require('kcors')
 // Local libraries
 const config = require('../config') // this first.
 
-const AdminLib = require('../src/lib/admin')
+const AdminLib = require('../src/adapters/admin')
 const adminLib = new AdminLib()
 
 const errorMiddleware = require('../src/middleware')
-
-// Winston logger
-const wlogger = require('../src/lib/wlogger')
+const wlogger = require('../src/adapters/wlogger')
 
 async function startServer () {
   console.log(`Using network: ${config.NETWORK}`)
@@ -58,9 +56,12 @@ async function startServer () {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  // Custom Middleware Modules
-  const modules = require('../src/modules')
-  modules(app)
+  // Start Adapters libraries, and attach Controller libraries (Clean Architecture).
+  const Controllers = require('../src/controllers')
+  const controllers = new Controllers()
+  await controllers.initAdapters()
+  await controllers.initUseCases()
+  await controllers.attachRESTControllers(app)
 
   // Enable CORS for testing
   app.use(cors({ origin: '*' }))
@@ -77,14 +78,6 @@ async function startServer () {
   // Create the system admin user.
   const success = await adminLib.createSystemUser()
   if (success) console.log('System admin user created.')
-
-  // Restart the app every 24 hours
-  const TWENTY_FOUR_HOURS = 60000 * 60 * 24
-  // const TWENTY_FOUR_HOURS = 5000
-  setInterval(function() {
-    console.log('Exiting after 24 hours. Depending on pm2 to restart the app.')
-    process.exit()
-  }, TWENTY_FOUR_HOURS)
 
   return app
 }
