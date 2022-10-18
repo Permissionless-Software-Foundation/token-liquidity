@@ -47,8 +47,18 @@ class TimerControllers {
   // more than 6, then they are consolidated.
   async utxoCntCheck () {
     try {
-      const bchUtxoCnt = _this.adapters.wallet.wallet.utxos.utxoStore
+      const bchUtxoCnt = _this.adapters.wallet.wallet.utxos.utxoStore.bchUtxos.length
       console.log('bchUtxoCnt: ', bchUtxoCnt)
+
+      const slpUtxoCnt = _this.adapters.wallet.wallet.utxos.utxoStore.slpUtxos.type1.tokens.length
+      console.log(`slpUtxoCnt: ${slpUtxoCnt}`)
+
+      const totalUtxos = bchUtxoCnt + slpUtxoCnt
+
+      if (totalUtxos > 6) {
+        console.log('UTXO count exceeds 6. Consolidating UTXOs...')
+        await _this.adapters.wallet.wallet.optimize()
+      }
     } catch (err) {
       // Do not throw an error. This is a top-level function.
       console.error('Error in utxoCntCheck(): ', err)
