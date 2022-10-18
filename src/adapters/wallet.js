@@ -37,6 +37,7 @@ class Wallet {
     this.bchjs = this.wallet.bchjs
 
     await this.wallet.walletInfoPromise
+    await this.wallet.initialize()
 
     console.log('Wallet is initialized.')
 
