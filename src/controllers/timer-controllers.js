@@ -26,7 +26,7 @@ class TimerControllers {
 
     this.state = {
       newTxCheckTime: 60000 * 2,
-      utxoCntCheckTime: 60000 * 1
+      utxoCntCheckTime: 60000 * 10
     }
 
     // Constants manipulated by unit tests
