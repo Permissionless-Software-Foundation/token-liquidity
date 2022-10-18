@@ -2,7 +2,7 @@
   Mocks for the Adapter library.
 */
 
-const BchWallet = require('minimal-slp-wallet/index')
+const BchWallet = require('minimal-slp-wallet')
 
 const config = require('../../../../config')
 

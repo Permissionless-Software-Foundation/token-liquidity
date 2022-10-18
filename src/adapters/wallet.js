@@ -3,7 +3,7 @@
 */
 
 // Global npm libraries
-const BchWallet = require('minimal-slp-wallet/index')
+const BchWallet = require('minimal-slp-wallet')
 
 // Local libraries
 const wlogger = require('./wlogger')
