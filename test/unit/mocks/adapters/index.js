@@ -64,7 +64,8 @@ const wallet = {
       tokens: [{ tokenId: config.slpTokenId, qty: 10000 }]
     }
   },
-  sendTokens: () => {}
+  sendTokens: () => {},
+  initialize: async () => {}
 }
 
 const wlogger = {
