@@ -3,7 +3,7 @@
 */
 
 // Global npm libraries
-const BchWallet = require('minimal-slp-wallet/index')
+const BchWallet = require('minimal-slp-wallet')
 
 // Local libraries
 const wlogger = require('./wlogger')
@@ -37,6 +37,7 @@ class Wallet {
     this.bchjs = this.wallet.bchjs
 
     await this.wallet.walletInfoPromise
+    await this.wallet.initialize()
 
     console.log('Wallet is initialized.')
 

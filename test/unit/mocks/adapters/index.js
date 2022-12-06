@@ -2,7 +2,7 @@
   Mocks for the Adapter library.
 */
 
-const BchWallet = require('minimal-slp-wallet/index')
+const BchWallet = require('minimal-slp-wallet')
 
 const config = require('../../../../config')
 
@@ -64,7 +64,8 @@ const wallet = {
       tokens: [{ tokenId: config.slpTokenId, qty: 10000 }]
     }
   },
-  sendTokens: () => {}
+  sendTokens: () => {},
+  initialize: async () => {}
 }
 
 const wlogger = {

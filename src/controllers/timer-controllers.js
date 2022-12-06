@@ -25,7 +25,8 @@ class TimerControllers {
     this.debugLevel = localConfig.debugLevel
 
     this.state = {
-      newTxCheckTime: 60000 * 2
+      newTxCheckTime: 60000 * 2,
+      utxoCntCheckTime: 60000 * 10
     }
 
     // Constants manipulated by unit tests
@@ -39,6 +40,29 @@ class TimerControllers {
   // Start all the time-based controllers.
   startTimers () {
     this.state.newTxCheckInterval = setInterval(this.checkForNewTxs, this.state.newTxCheckTime)
+    this.state.utxoCntCheckInterval = setInterval(this.utxoCntCheck, this.state.utxoCntCheckTime)
+  }
+
+  // This function is called by interval. It checks the number of UTXOs in the wallet. If it's
+  // more than 6, then they are consolidated.
+  async utxoCntCheck () {
+    try {
+      const bchUtxoCnt = _this.adapters.wallet.wallet.utxos.utxoStore.bchUtxos.length
+      console.log('bchUtxoCnt: ', bchUtxoCnt)
+
+      const slpUtxoCnt = _this.adapters.wallet.wallet.utxos.utxoStore.slpUtxos.type1.tokens.length
+      console.log(`slpUtxoCnt: ${slpUtxoCnt}`)
+
+      const totalUtxos = bchUtxoCnt + slpUtxoCnt
+
+      if (totalUtxos > 6) {
+        console.log('UTXO count exceeds 6. Consolidating UTXOs...')
+        await _this.adapters.wallet.wallet.optimize()
+      }
+    } catch (err) {
+      // Do not throw an error. This is a top-level function.
+      console.error('Error in utxoCntCheck(): ', err)
+    }
   }
 
   // Poll the apps wallet address to see if new trades have come in.

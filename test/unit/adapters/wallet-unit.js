@@ -37,7 +37,11 @@ describe('#Wallet', () => {
 
     it('should initialize wallet', async () => {
       // Mock dependencies
-      const FakeWallet = class FakeWalle {}
+      const FakeWallet = class FakeWalle {
+        async initialize () {
+          return true
+        }
+      }
       uut.BchWallet = FakeWallet
 
       const mnemonic = 'drum salute decline increase earth cloth tobacco gospel appear motor fever soft'
