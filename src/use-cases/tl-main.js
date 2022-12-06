@@ -85,7 +85,7 @@ class TLMain {
       // Get balances of wallet
       const balance = await _this.adapters.wallet.getBalances()
       // 11/6/22 Added this debug statement to catch an error showing up in production.
-      console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
+      // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
 
       // Calculate the sat and BCH balances.
       _this.state.satBalance = balance.sats
@@ -94,7 +94,7 @@ class TLMain {
       // Get the balance of the app token.
       const targetToken = balance.tokens.filter(x => x.tokenId === _this.config.slpTokenId)
       // 11/6/22 Added this debug statement to catch an error showing up in production.
-      console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
+      // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
       _this.state.tokenBalance = targetToken[0].qty
 
       // Get the spot price of BCH
