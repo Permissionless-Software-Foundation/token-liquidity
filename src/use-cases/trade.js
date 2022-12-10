@@ -268,9 +268,10 @@ class Trade {
         }]
 
         const txidOut = await this.adapters.wallet.wallet.send(receivers)
-        console.log(`txidOut: ${txidOut[0]}\n`)
+        // console.log(`txidOut: ${txidOut[0]}\n`)
+        console.log('txidOut: ', txidOut)
 
-        return txidOut[0]
+        return txidOut
       } else {
         // User sent BCH, and wants to receive tokens.
 
