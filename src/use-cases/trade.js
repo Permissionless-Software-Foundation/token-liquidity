@@ -293,9 +293,10 @@ class Trade {
         console.log(`Sending ${tokensOut} tokens to ${userAddr}`)
 
         const txidOut = await this.adapters.wallet.sendTokens(userAddr, tokensOut)
-        console.log(`txidOut: ${txidOut[0]}\n`)
+        // console.log(`txidOut: ${txidOut[0]}\n`)
+        console.log('txidOut: ', txidOut)
 
-        return txidOut[0]
+        return txidOut
       }
 
       // return true
