@@ -38,6 +38,12 @@ describe('#Wallet', () => {
     it('should initialize wallet', async () => {
       // Mock dependencies
       const FakeWallet = class FakeWalle {
+        constructor () {
+          this.walletInfo = {
+            cashAddress: ''
+          }
+        }
+
         async initialize () {
           return true
         }
