@@ -27,7 +27,7 @@
   },
   "repository": "Permissionless-Software-Foundation/token-liquidity",
   "dependencies": {
-    "@psf/bch-js": "6.6.1",
+    "@psf/bch-js": "6.7.0",
     "axios": "^0.25.0",
     "bcryptjs": "^2.4.3",
     "bignumber.js": "^9.0.2",
@@ -48,7 +48,7 @@
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
     "line-reader": "^0.4.0",
-    "minimal-slp-wallet": "5.8.5",
+    "minimal-slp-wallet": "5.8.6",
     "mongoose": "^5.11.15",
     "nodemailer": "^6.4.17",
     "p-queue": "^6.2.1",
