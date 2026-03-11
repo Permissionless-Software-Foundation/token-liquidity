@@ -81,7 +81,7 @@ export class TLMain {
     try {
       // console.log('_this.adapters.wallet: ', _this.adapters.wallet)
 
-      if(!_this.adapters.wallet.isInitialized) {
+      if (!_this.adapters.wallet.isInitialized) {
         await _this.adapters.wallet.initWallet(_this.config.mnemonic)
       }
 
