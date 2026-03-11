@@ -31,6 +31,9 @@ class Adapters {
     this.wlogger = wlogger
     this.fullstack = new FullStack()
     this.wallet = new Wallet()
+    this.bch = new BCH({ bchjs: this.wallet.bchjs })
+    this.txs = new Transactions({ bchjs: this.wallet.bchjs })
+    this.slp = new SLP({ wallet: this.wallet })
 
     _this = this
   }
@@ -38,6 +41,11 @@ class Adapters {
   // Startup any asynchronous processes needed to initialize the adapter libraries.
   async startAdapters () {
     try {
+      // Ensure dependent adapters are initialized during app startup.
+      this.bch = new BCH({ bchjs: this.wallet.bchjs })
+      this.txs = new Transactions({ bchjs: this.wallet.bchjs })
+      this.slp = new SLP({ wallet: this.wallet })
+
       // Skip this section when running automated e2e tests.
       // if (this.config.env !== 'test') {
       //   // Get a JWT token from FullStack.cash and update the BCHJSTOKEN environment

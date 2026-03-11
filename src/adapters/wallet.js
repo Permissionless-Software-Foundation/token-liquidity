@@ -23,14 +23,14 @@ class Wallet {
   }
 
   // Returns true after the wallet has been initialized.
-  async initWallet (mnemonic, apiToken) {
+  async initWallet (mnemonic) {
     if (!mnemonic) {
       throw new Error('Must pass mnemonic when instantiating the Wallet class library.')
     }
 
     this.wallet = new this.BchWallet(mnemonic, {
       interface: 'rest-api',
-      apiToken: apiToken
+      restURL: config.restURL
     })
     this.bchjs = this.wallet.bchjs
 
@@ -46,7 +46,12 @@ class Wallet {
   // Get balances of BCH and tokens.
   async getBalances () {
     try {
-      // Update the wallet UTOXs.
+      if(!this.wallet.isInitialized) {
+        // await this.wallet.initialize()
+        await this.initWallet(this.config.mnemonic)
+      }
+
+      // Update the wallet UTOXs.)
       await this.wallet.getUtxos()
 
       const bchBalance = await this.wallet.getBalance()
