@@ -2,12 +2,8 @@
   Contains mocks of BITBOX library calls.
 */
 
-'use strict'
-
-const sinon = require('sinon')
-
-// Inspect JS Objects.
-const util = require('util')
+import sinon from 'sinon'
+import util from 'util'
 util.inspect.defaultOptions = {
   showHidden: true,
   colors: true
@@ -453,7 +449,4 @@ const bitboxMock = {
   }
 }
 
-module.exports = {
-  bitboxMock,
-  mockTransactions
-}
+export { bitboxMock, mockTransactions }

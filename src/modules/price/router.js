@@ -1,10 +1,9 @@
 // const ensureUser = require('../../middleware/validators')
-const price = require('./controller')
+import * as price from './controller.js'
 
-// export const baseUrl = '/users'
-module.exports.baseUrl = '/price'
+export const baseUrl = '/price'
 
-module.exports.routes = [
+export const routes = [
   {
     method: 'GET',
     route: '/',

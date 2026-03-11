@@ -2,13 +2,10 @@
   Integration tests for the wallet.js adapter library
 */
 
-// Global npm libraries
-const assert = require('chai').assert
-
-// Local libraries
-const config = require('../../config')
-const Wallet = require('../../src/adapters/wallet')
-const FullStack = require('../../src/adapters/fullstack-cash')
+import { assert } from 'chai'
+import config from '../../config/index.js'
+import Wallet from '../../src/adapters/wallet.js'
+import FullStack from '../../src/adapters/fullstack-cash.js'
 
 describe('#wallet.js', () => {
   let uut

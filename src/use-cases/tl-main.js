@@ -2,16 +2,13 @@
   Main token-liquidity business logic.
 */
 
-// Global npm libraries
-
 // Local libraries
-const config = require('../../config')
-const Trade = require('./trade')
-// const wlogger = require('./wlogger')
+import config from '../../config/index.js'
+import { Trade } from './trade.js'
 
 let _this
 
-class TLMain {
+export class TLMain {
   constructor (localConfig = {}) {
     // Dependency Injection
     this.adapters = localConfig.adapters
@@ -177,4 +174,4 @@ class TLMain {
   }
 }
 
-module.exports = TLMain
+export default TLMain

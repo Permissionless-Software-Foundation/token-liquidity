@@ -7,19 +7,19 @@
 
 'use strict'
 
-const assert = require('chai').assert
-const sinon = require('sinon')
-const nock = require('nock')
-const cloneDeep = require('lodash.clonedeep')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import nock from 'nock'
+import cloneDeep from 'lodash.clonedeep'
 
-const Transactions = require('../../src/lib/transactions')
+import Transactions from './src/adapters/transactions.js'
 
 // const bitboxMock = require('bitbox-mock')
-const txMockDataLib = require('./mocks/transactions.mock')
-let mockData
+import txMockDataLib from './test/unit/mocks/transactions.mock.js'
 
 // Used for debugging.
-const util = require('util')
+import util from 'util'
+let mockData
 util.inspect.defaultOptions = { depth: 1 }
 
 // Determine if this is a Unit or Integration test

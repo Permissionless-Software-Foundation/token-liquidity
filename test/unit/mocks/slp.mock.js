@@ -4,14 +4,13 @@
 
 'use strict'
 
-// Inspect JS Objects.
-const util = require('util')
+import util from 'util'
+
+import config from '../../../config/index.js'
 util.inspect.defaultOptions = {
   showHidden: true,
   colors: true
 }
-
-const config = require('../../../config')
 
 const tokenTx = {
   txid: '3f027a0006e28db49cfa24820d1cab67c3591e975791e46af689c319819bf8d0',
@@ -389,4 +388,4 @@ const slpMockData = {
   fulcrumEmtpyUtxos
 }
 
-module.exports = slpMockData
+export default slpMockData

@@ -4,12 +4,11 @@
 // User library for business logic.
 // const UserLib = require('../../../adapters/users')
 
-const wlogger = require('../../../adapters/wlogger')
+import wlogger from '../../../adapters/wlogger.js'
 
 let _this
-class UserRESTControllerLib {
+export class UserRESTControllerLib {
   constructor (localConfig = {}) {
-    // Dependency injection.
     this.adapters = localConfig.adapters
     if (!this.adapters) {
       throw new Error(
@@ -23,9 +22,7 @@ class UserRESTControllerLib {
       )
     }
 
-    // Encapsulate dependencies
     this.UserModel = this.adapters.localdb.Users
-    // this.userLib = new UserLib()
 
     _this = this
   }
@@ -35,57 +32,18 @@ class UserRESTControllerLib {
    * @apiPermission user
    * @apiName CreateUser
    * @apiGroup Users
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X POST -d '{ "user": { "email": "email@format.com", "password": "secretpasas" } }' localhost:5001/users
-   *
-   * @apiParam {Object} user          User object (required)
-   * @apiParam {String} user.email Email.
-   * @apiParam {String} user.password Password.
-   *
-   * @apiSuccess {Object}   users           User object
-   * @apiSuccess {ObjectId} users._id       User id
-   * @apiSuccess {String}   user.type       User type (admin or user)
-   * @apiSuccess {String}   users.name      User name
-   * @apiSuccess {String}   users.username  User username
-   * @apiSuccess {String}   users.email     User email
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "user": {
-   *          "_id": "56bd1da600a526986cf65c80"
-   *          "name": "John Doe"
-   *          "email": "email@format.com"
-   *       }
-   *     }
-   *
-   * @apiError UnprocessableEntity Missing required parameters
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 422 Unprocessable Entity
-   *     {
-   *       "status": 422,
-   *       "error": "Unprocessable Entity"
-   *     }
    */
   async createUser (ctx) {
     try {
       const userObj = ctx.request.body.user
 
-      // const { userData, token } = await _this.userLib.createUser(userObj)
       const { userData, token } = await _this.useCases.user.createUser(userObj)
-      // console.log('userData: ', userData)
-      // console.log('token: ', token)
 
       ctx.body = {
         user: userData,
         token
       }
     } catch (err) {
-      // console.log(`err.message: ${err.message}`)
-      // console.log('err: ', err)
-      // ctx.throw(422, err.message)
       _this.handleError(ctx, err)
     }
   }
@@ -95,32 +53,9 @@ class UserRESTControllerLib {
    * @apiPermission user
    * @apiName GetUsers
    * @apiGroup Users
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X GET localhost:5000/users
-   *
-   * @apiSuccess {Object[]} users           Array of user objects
-   * @apiSuccess {ObjectId} users._id       User id
-   * @apiSuccess {String}   user.type       User type (admin or user)
-   * @apiSuccess {String}   users.name      User name
-   * @apiSuccess {String}   users.username  User username
-   * @apiSuccess {String}   users.email     User email
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "users": [{
-   *          "_id": "56bd1da600a526986cf65c80"
-   *          "name": "John Doe"
-   *          "email": "email@format.com"
-   *       }]
-   *     }
-   *
-   * @apiUse TokenError
    */
   async getUsers (ctx) {
     try {
-      // const users = await _this.userLib.getAllUsers()
       const users = await _this.useCases.user.getAllUsers()
 
       ctx.body = { users }
@@ -135,28 +70,6 @@ class UserRESTControllerLib {
    * @apiPermission user
    * @apiName GetUser
    * @apiGroup Users
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X GET localhost:5000/users/56bd1da600a526986cf65c80
-   *
-   * @apiSuccess {Object}   users           User object
-   * @apiSuccess {ObjectId} users._id       User id
-   * @apiSuccess {String}   user.type       User type (admin or user)
-   * @apiSuccess {String}   users.name      User name
-   * @apiSuccess {String}   users.username  User username
-   * @apiSuccess {String}   users.email     User email
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "user": {
-   *          "_id": "56bd1da600a526986cf65c80"
-   *          "name": "John Doe"
-   *          "email": "email@format.com"
-   *       }
-   *     }
-   *
-   * @apiUse TokenError
    */
   async getUser (ctx, next) {
     try {
@@ -178,41 +91,6 @@ class UserRESTControllerLib {
    * @apiPermission user
    * @apiName UpdateUser
    * @apiGroup Users
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X PUT -d '{ "user": { "name": "Cool new Name" } }' localhost:5000/users/56bd1da600a526986cf65c80
-   *
-   * @apiParam {Object} user          User object (required)
-   * @apiParam {String} user.name     Name.
-   * @apiParam {String} user.email Email.
-   *
-   * @apiSuccess {Object}   users           User object
-   * @apiSuccess {ObjectId} users._id       User id
-   * @apiSuccess {String}   user.type      User type (admin or user)
-   * @apiSuccess {String}   users.name      Updated name
-   * @apiSuccess {String}   users.username  Updated username
-   * @apiSuccess {String}   users.email     Updated email
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "user": {
-   *          "_id": "56bd1da600a526986cf65c80"
-   *          "name": "Cool new name"
-   *          "email": "email@format.com"
-   *       }
-   *     }
-   *
-   * @apiError UnprocessableEntity Missing required parameters
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 422 Unprocessable Entity
-   *     {
-   *       "status": 422,
-   *       "error": "Unprocessable Entity"
-   *     }
-   *
-   * @apiUse TokenError
    */
   async updateUser (ctx) {
     try {
@@ -234,25 +112,11 @@ class UserRESTControllerLib {
    * @apiPermission user
    * @apiName DeleteUser
    * @apiGroup Users
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X DELETE localhost:5000/users/56bd1da600a526986cf65c80
-   *
-   * @apiSuccess {StatusCode} 200
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "success": true
-   *     }
-   *
-   * @apiUse TokenError
    */
   async deleteUser (ctx) {
     try {
       const user = ctx.body.user
 
-      // await user.remove()
       await _this.useCases.user.deleteUser(user)
 
       ctx.status = 200
@@ -264,9 +128,7 @@ class UserRESTControllerLib {
     }
   }
 
-  // DRY error handler
   handleError (ctx, err) {
-    // If an HTTP status is specified by the buisiness logic, use that.
     if (err.status) {
       if (err.message) {
         ctx.throw(err.status, err.message)
@@ -274,12 +136,10 @@ class UserRESTControllerLib {
         ctx.throw(err.status)
       }
     } else {
-      // By default use a 422 error if the HTTP status is not specified.
       ctx.throw(422, err.message)
     }
   }
 
-  // Validate Email Format
   async validateEmail (email) {
     // eslint-disable-next-line no-useless-escape
     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
@@ -289,4 +149,4 @@ class UserRESTControllerLib {
   }
 }
 
-module.exports = UserRESTControllerLib
+export default UserRESTControllerLib

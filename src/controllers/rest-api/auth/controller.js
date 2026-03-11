@@ -1,9 +1,9 @@
-const Passport = require('../../../adapters/passport')
+import Passport from '../../../adapters/passport.js'
 const passport = new Passport()
 
 let _this
 
-class Auth {
+export class Auth {
   constructor () {
     _this = this
     this.passport = passport
@@ -45,7 +45,7 @@ class Auth {
    *          "_id": "56bd1da600a526986cf65c80"
    *          "username": "johndoe"
    *        },
-   *       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"
+   *       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
    *     }
    *
    * @apiError Unauthorized Incorrect credentials
@@ -80,4 +80,4 @@ class Auth {
   }
 }
 
-module.exports = Auth
+export default Auth

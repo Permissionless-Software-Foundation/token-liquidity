@@ -2,12 +2,11 @@
   Route handler for the /logs endpoint.
 */
 
-const logs = require('./controller')
+import * as logs from './controller.js'
 
-// export const baseUrl = '/users'
-module.exports.baseUrl = '/logs'
+export const baseUrl = '/logs'
 
-module.exports.routes = [
+export const routes = [
   {
     method: 'GET',
     route: '/',

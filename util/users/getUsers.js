@@ -1,13 +1,10 @@
-const mongoose = require('mongoose')
-
-const config = require('../../config')
-
-const User = require('../../src/models/users')
+import mongoose from 'mongoose'
+import config from '../../config/index.js'
+import User from '../../src/adapters/localdb/models/users.js'
 
 async function getUsers () {
-  // Connect to the Mongo Database.
   mongoose.Promise = global.Promise
-  mongoose.set('useCreateIndex', true) // Stop deprecation warning.
+  mongoose.set('useCreateIndex', true)
   await mongoose.connect(
     config.database,
     { useNewUrlParser: true, useUnifiedTopology: true }

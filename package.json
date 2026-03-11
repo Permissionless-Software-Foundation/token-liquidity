@@ -2,6 +2,7 @@
   "name": "token-liquidity",
   "version": "4.0.0",
   "description": "BCH SLP Token Liquidity Web App for the Permissionless Software Foundation",
+  "type": "module",
   "main": "token-liquidity.js",
   "scripts": {
     "start": "env-cmd node token-liquidity.js",
@@ -48,7 +49,7 @@
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
     "line-reader": "^0.4.0",
-    "minimal-slp-wallet": "5.8.6",
+    "minimal-slp-wallet": "7.1.4",
     "mongoose": "^5.11.15",
     "nodemailer": "^6.4.17",
     "p-queue": "^6.2.1",

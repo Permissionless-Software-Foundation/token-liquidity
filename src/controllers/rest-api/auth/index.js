@@ -2,15 +2,11 @@
   REST API library for auth route.
 */
 
-// Public npm libraries.
-const Router = require('koa-router')
+import Router from 'koa-router'
+import AuthRESTController from './controller.js'
 
-// Local libraries.
-const AuthRESTController = require('./controller')
-
-class AuthRouter {
+export class AuthRouter {
   constructor (localConfig = {}) {
-    // Dependency Injection.
     this.adapters = localConfig.adapters
     if (!this.adapters) {
       throw new Error(
@@ -24,10 +20,8 @@ class AuthRouter {
       )
     }
 
-    // Encapsulate dependencies.
     this.authRESTController = new AuthRESTController(localConfig)
 
-    // Instantiate the router and set the base route.
     const baseUrl = '/auth'
     this.router = new Router({ prefix: baseUrl })
   }
@@ -39,13 +33,11 @@ class AuthRouter {
       )
     }
 
-    // Define the routes and attach the controller.
     this.router.post('/', this.authRESTController.authUser)
 
-    // Attach the Controller routes to the Koa app.
     app.use(this.router.routes())
     app.use(this.router.allowedMethods())
   }
 }
 
-module.exports = AuthRouter
+export default AuthRouter

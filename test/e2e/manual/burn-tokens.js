@@ -6,6 +6,8 @@
 */
 
 // Set NETWORK to either testnet or mainnet
+import BCHJS from '@psf/bch-js'
+
 const NETWORK = 'testnet'
 
 // REST API servers.
@@ -20,8 +22,6 @@ const SATS_TO_SEND = 100000
 
 // Customize the message you want to send
 const MESSAGE = 'BURN abcdef'
-
-const BCHJS = require('@psf/bch-js')
 let bchjs
 if (NETWORK === 'mainnet') bchjs = new BCHJS({ restURL: MAINNET_API })
 else bchjs = new BCHJS({ restURL: TESTNET_API })

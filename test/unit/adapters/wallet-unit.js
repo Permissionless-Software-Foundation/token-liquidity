@@ -2,12 +2,9 @@
   Unit tests for the wallet.js adapter library
 */
 
-// Global npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local libraries
-const Wallet = require('../../../src/adapters/wallet')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import Wallet from '../../../src/adapters/wallet.js'
 
 describe('#Wallet', () => {
   let sandbox

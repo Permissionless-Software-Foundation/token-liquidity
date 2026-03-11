@@ -2,24 +2,30 @@
   Utility functions used to prepare the environment for tests.
 */
 
-// Public NPM libraries
-const mongoose = require('mongoose')
-const axios = require('axios').default
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import mongoose from 'mongoose'
+import axios from 'axios'
+import config from '../../config/index.js'
+import User from '../../src/adapters/localdb/models/users.js'
 
-// Local libraries
-const config = require('../../config')
-const User = require('../../src/adapters/localdb/models/users')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const LOCALHOST = `http://localhost:${config.port}`
+
+function loadJson (filename) {
+  const filePath = path.isAbsolute(filename) ? filename : path.resolve(__dirname, filename)
+  const raw = fs.readFileSync(filePath, 'utf8')
+  return JSON.parse(raw)
+}
 
 // Remove all collections from the DB.
 async function cleanDb () {
   for (const collection in mongoose.connection.collections) {
     const collections = mongoose.connection.collections
     if (collections.collection) {
-      // const thisCollection = mongoose.connection.collections[collection]
-      // console.log(`thisCollection: ${JSON.stringify(thisCollection, null, 2)}`)
-
       await collection.deleteMany()
     }
   }
@@ -29,11 +35,7 @@ async function cleanDb () {
 // to confuse tests.
 async function deleteAllUsers () {
   try {
-    // Get all the users in the DB.
     const users = await User.find({}, '-password')
-    // console.log(`users: ${JSON.stringify(users, null, 2)}`)
-
-    // Delete each user.
     for (let i = 0; i < users.length; i++) {
       const thisUser = users[i]
       await thisUser.remove()
@@ -43,11 +45,6 @@ async function deleteAllUsers () {
   }
 }
 
-// This function is used to create new users.
-// userObj = {
-//   username,
-//   password
-// }
 async function createUser (userObj) {
   try {
     const options = {
@@ -61,15 +58,11 @@ async function createUser (userObj) {
         }
       }
     }
-
     const result = await axios(options)
-
-    const retObj = {
+    return {
       user: result.data.user,
       token: result.data.token
     }
-
-    return retObj
   } catch (err) {
     console.log(
       'Error in utils.js/createUser(): ' + JSON.stringify(err, null, 2)
@@ -88,18 +81,12 @@ async function loginTestUser () {
         password: 'pass'
       }
     }
-
     const result = await axios(options)
-
-    // console.log(`result: ${JSON.stringify(result.data, null, 2)}`)
-
-    const retObj = {
+    return {
       token: result.data.token,
       user: result.data.user.username,
       id: result.data.user._id.toString()
     }
-
-    return retObj
   } catch (err) {
     console.log(
       'Error authenticating test user: ' + JSON.stringify(err, null, 2)
@@ -110,10 +97,9 @@ async function loginTestUser () {
 
 async function loginAdminUser () {
   try {
-    const FILENAME = `../../config/system-user-${config.env}.json`
-    const adminUserData = require(FILENAME)
+    const filename = path.join(__dirname, '../../config', `system-user-${config.env}.json`)
+    const adminUserData = loadJson(filename)
     console.log(`adminUserData: ${JSON.stringify(adminUserData, null, 2)}`)
-
     const options = {
       method: 'POST',
       url: `${LOCALHOST}/auth`,
@@ -123,18 +109,12 @@ async function loginAdminUser () {
         name: 'admin'
       }
     }
-
     const result = await axios(options)
-
-    // console.log(`result: ${JSON.stringify(result.data, null, 2)}`)
-
-    const retObj = {
+    return {
       token: result.data.token,
       user: result.data.user.username,
       id: result.data.user._id.toString()
     }
-
-    return retObj
   } catch (err) {
     console.log(
       'Error authenticating test admin user: ' + JSON.stringify(err, null, 2)
@@ -143,16 +123,10 @@ async function loginAdminUser () {
   }
 }
 
-// Retrieve the admin user JWT token from the JSON file it's saved at.
 async function getAdminJWT () {
   try {
-    // process.env.KOA_ENV = process.env.KOA_ENV || 'dev'
-    // console.log(`env: ${process.env.KOA_ENV}`)
-
-    const FILENAME = `../../config/system-user-${config.env}.json`
-    const adminUserData = require(FILENAME)
-    // console.log(`adminUserData: ${JSON.stringify(adminUserData, null, 2)}`)
-
+    const filename = path.join(__dirname, '../../config', `system-user-${config.env}.json`)
+    const adminUserData = loadJson(filename)
     return adminUserData.token
   } catch (err) {
     console.error('Error in test/utils.js/getAdminJWT()')
@@ -160,7 +134,7 @@ async function getAdminJWT () {
   }
 }
 
-module.exports = {
+export {
   cleanDb,
   createUser,
   loginTestUser,

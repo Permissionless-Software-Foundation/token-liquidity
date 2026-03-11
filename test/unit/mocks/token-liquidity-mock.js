@@ -88,7 +88,7 @@ const exchangeRatesResponse = {
   })
 }
 
-module.exports = {
+export {
   knownTxids,
   addrInfo,
   confs,

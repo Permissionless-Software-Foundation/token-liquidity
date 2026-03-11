@@ -2,12 +2,8 @@
   Unit tests for controllers index.js file.
 */
 
-// Public npm libraries
-// const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local libraries
-const Controllers = require('../../../src/controllers')
+import sinon from 'sinon'
+import Controllers from '../../../src/controllers/index.js'
 
 describe('#Controllers', () => {
   let uut

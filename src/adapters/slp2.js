@@ -4,16 +4,14 @@
   a lot of the SLP functionality.
 */
 
-// Public npm libraries
-// const BchWallet = require('minimal-slp-wallet/index')
-const BigNumber = require('bignumber.js')
-const pRetry = require('p-retry')
+import BigNumber from 'bignumber.js'
+import pRetry from 'p-retry'
+import BchWallet from 'minimal-slp-wallet'
 
-// Local libraries
-const TLUtils = require('./util')
-const wlogger = require('./wlogger')
-const Email = require('./contact')
-const config = require('../../config')
+import config from '../../config/index.js'
+import TLUtils from './util.js'
+import wlogger from './wlogger.js'
+import Email from './contact.js'
 
 // This constant saves an API call for each UTXO.
 const TOKEN_DECIMALS = 8
@@ -25,7 +23,9 @@ class SLP {
     // Dependency Injection
     this.wallet = localConfig.wallet
     if (!this.wallet) {
-      throw new Error('Instance of minimal-slp-wallet required when instantiating the SLP class.')
+      this.wallet = new BchWallet(undefined, {
+        interface: config.WALLET_INTERFACE
+      })
     }
 
     // Encapsulate dependencies
@@ -703,4 +703,4 @@ class SLP {
   }
 }
 
-module.exports = SLP
+export default SLP

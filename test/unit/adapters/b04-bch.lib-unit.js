@@ -2,17 +2,18 @@
   Unit and integration tests for bch.js library.
 */
 
-// Global npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-const cloneDeep = require('lodash.clonedeep')
-const BchWallet = require('minimal-slp-wallet')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import cloneDeep from 'lodash.clonedeep'
+import fs from 'fs'
+import BchWallet from 'minimal-slp-wallet'
+import BCH from '../../../src/adapters/bch.js'
+import bchMockDataLib from '../mocks/bch.mock.js'
+import config from '../../../config/index.js'
 
-// Local libraries
-const BCH = require('../../../src/adapters/bch')
-const bchMockDataLib = require('../mocks/bch.mock')
-const mockWallet = require('../mocks/testwallet.json')
-const config = require('../../../config')
+const mockWallet = JSON.parse(
+  fs.readFileSync(new URL('../mocks/testwallet.json', import.meta.url))
+)
 
 // If not specified, default to unit test.
 if (!process.env.TL_ENV) process.env.TL_ENV = 'test'

@@ -1,8 +1,8 @@
 /*
   A utility file for reading and writing JSON files.
 */
-'use strict'
-const fs = require('fs')
+
+import fs from 'fs'
 
 let _this
 
@@ -14,7 +14,6 @@ class JsonFiles {
   }
 
   // Writes out a JSON file of any object passed to the function.
-  // This is used for testing.
   writeJSON (obj, fileName) {
     return new Promise(function (resolve, reject) {
       try {
@@ -31,7 +30,6 @@ class JsonFiles {
             console.error('Error while trying to write file: ')
             throw err
           } else {
-            // console.log(`${fileName} written successfully!`)
             return resolve()
           }
         })
@@ -72,4 +70,4 @@ class JsonFiles {
   }
 }
 
-module.exports = JsonFiles
+export default JsonFiles

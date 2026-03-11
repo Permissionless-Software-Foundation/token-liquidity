@@ -2,15 +2,11 @@
   REST API library for /logs route.
 */
 
-// Public npm libraries.
-const Router = require('koa-router')
+import Router from 'koa-router'
+import LogsRESTControllerLib from './controller.js'
 
-// Local libraries.
-const LogsRESTControllerLib = require('./controller')
-
-class LogsRouter {
+export class LogsRouter {
   constructor (localConfig = {}) {
-    // Dependency Injection.
     this.adapters = localConfig.adapters
     if (!this.adapters) {
       throw new Error(
@@ -31,7 +27,6 @@ class LogsRouter {
 
     this.logsRESTController = new LogsRESTControllerLib(dependencies)
 
-    // Instantiate the router and set the base route.
     const baseUrl = '/logapi'
     this.router = new Router({ prefix: baseUrl })
   }
@@ -43,13 +38,11 @@ class LogsRouter {
       )
     }
 
-    // Define the routes and attach the controller.
     this.router.post('/', this.logsRESTController.getLogs)
 
-    // Attach the Controller routes to the Koa app.
     app.use(this.router.routes())
     app.use(this.router.allowedMethods())
   }
 }
 
-module.exports = LogsRouter
+export default LogsRouter

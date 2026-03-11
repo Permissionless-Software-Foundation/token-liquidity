@@ -5,11 +5,11 @@
 */
 
 // Local libraries
-const UserUseCases = require('./user')
-const TLMain = require('./tl-main')
-const config = require('../../config')
+import { UserLib } from './user.js'
+import { TLMain } from './tl-main.js'
+import config from '../../config/index.js'
 
-class UseCases {
+export class UseCases {
   constructor (localConfig = {}) {
     // Dependency Injection
     this.adapters = localConfig.adapters
@@ -21,14 +21,12 @@ class UseCases {
 
     // Encapsulate dependencies
     this.config = config
-    this.user = new UserUseCases(localConfig)
+    this.user = new UserLib(localConfig)
     this.tlMain = new TLMain(localConfig)
   }
 
-  // Run any startup Use Cases at the start of the app.
   async startUseCases () {
     try {
-      // Skip this section when running automated e2e tests.
       if (this.config.env !== 'test') {
         await this.tlMain.initState()
       }
@@ -40,4 +38,4 @@ class UseCases {
   }
 }
 
-module.exports = UseCases
+export default UseCases

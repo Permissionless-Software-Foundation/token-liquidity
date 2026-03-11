@@ -2,11 +2,10 @@
   Integration tests for the slp2.js library
 */
 
-const assert = require('chai').assert
+import { assert } from 'chai'
+import config from '../../config/index.js'
+import SLP2 from '../../src/adapters/slp2.js'
 
-const config = require('../../config')
-
-const SLP2 = require('../../src/adapters/slp2')
 const slp2 = new SLP2(config)
 
 describe('#slp2', () => {

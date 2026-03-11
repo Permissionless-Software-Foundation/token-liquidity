@@ -7,16 +7,17 @@
 */
 
 // Global npm libraries
-const collect = require('collect.js')
-const pRetry = require('p-retry')
-const { default: PQueue } = require('p-queue')
+import collect from 'collect.js'
+import pRetry from 'p-retry'
+import PQueuePkg from 'p-queue'
 
 // Local libraries
-const config = require('../../config')
+import config from '../../config/index.js'
 
 let _this
+const PQueue = PQueuePkg.default || PQueuePkg
 
-class Trade {
+export class Trade {
   constructor (localConfig = {}) {
     // Dependency Injection
     this.adapters = localConfig.adapters
@@ -126,22 +127,6 @@ class Trade {
       // Send an email to alert about the exception.
       if (this.config.useEmailAlerts) {
         console.log('placeholder2 for sending an email')
-
-        // Try to convert the error object into a JSON string. If that's not possible,
-        // then try to copy the message.
-        // let errorStr = ''
-        // try {
-        //   errorStr = JSON.stringify(error, null, 2)
-        // } catch {
-        //   errorStr = error.message
-        // }
-        //
-        // const emailObj = {
-        //   callerMsg:
-        //     'Warning: lib/token-liquidity.js/pRetryProcessTx() had an error, but is continuing processing. Now would be a good time to check on the app.',
-        //   errorObj: errorStr
-        // }
-        // await _this.email.sendTLEmailAlert(emailObj)
       }
 
       // Note: Do not throw an error, as that will cause all other transactions
@@ -183,22 +168,11 @@ class Trade {
 
     // If the number of retries has been exhausted, send out an email alert.
     if (!error.retriesLeft && _this.config.useEmailAlerts) {
-      // Try to convert the error object into a JSON string. If that's not possible,
-      // then try to copy the message.
       let errorStr = ''
-      // try {
       errorStr = JSON.stringify(error, null, 2)
-      // } catch {
-      //   errorStr = error.message
-      // }
 
       console.log('placeholder for sending an email')
       console.log(errorStr)
-      // const emailObj = {
-      //   callerMsg: 'lib/slp2.js/handleMoveTokenError()',
-      //   errorObj: errorStr
-      // }
-      // await _this.email.sendTLEmailAlert(emailObj)
     }
 
     await _this.adapters.wallet.bchjs.Util.sleep(_this.timeBetweenRetries) // Sleep for 4 minutes
@@ -218,7 +192,6 @@ class Trade {
       // Wait 5 seconds and then check the double-spend proof
       await this.adapters.wallet.wallet.bchjs.Util.sleep(this.dsSleepTime)
       const dsProof = await this.adapters.wallet.wallet.bchjs.DSProof.getDSProof(txid)
-      // console.log('dsProof: ', dsProof)
 
       // Exit if dsProof is *not* null
       if (dsProof !== null) {
@@ -238,14 +211,11 @@ class Trade {
       this.adapters.wlogger.info(`Sender's address: ${userAddr}`)
 
       // Exit if the userAddr is the same as the bchAddr for this app.
-      // This occurs when the app sends bch or tokens to the user, imediately
-      // after processing the users transaction and then broadcasting the trade.
       if (userAddr === bchAddr) {
         this.adapters.wlogger.info(
           'userAddr === app address. Exiting compareLastTransaction()\n'
         )
 
-        // Signal that this was a self-generated transaction.
         return null
       }
 
@@ -268,7 +238,6 @@ class Trade {
         }]
 
         const txidOut = await this.adapters.wallet.wallet.send(receivers)
-        // console.log(`txidOut: ${txidOut[0]}\n`)
         console.log('txidOut: ', txidOut)
 
         return txidOut
@@ -278,7 +247,6 @@ class Trade {
         let bchQty = await this.adapters.bch.recievedBch(txid, bchAddr)
         this.adapters.wlogger.info(`${bchQty} BCH recieved.`)
 
-        // Ensure bchQty is a number
         bchQty = Number(bchQty)
         if (isNaN(bchQty)) {
           throw new Error('bchQty could not be converted to a number.')
@@ -294,13 +262,10 @@ class Trade {
         console.log(`Sending ${tokensOut} tokens to ${userAddr}`)
 
         const txidOut = await this.adapters.wallet.sendTokens(userAddr, tokensOut)
-        // console.log(`txidOut: ${txidOut[0]}\n`)
         console.log('txidOut: ', txidOut)
 
         return txidOut
       }
-
-      // return true
     } catch (err) {
       console.error('Error in use-cases/trade.js/processTx()')
       throw err
@@ -309,32 +274,25 @@ class Trade {
 
   // Calculates the numbers of tokens to send to user, in exchange for the BCH
   // the user sent to the app.
-  // This function only uses the BCH to calculate the token output.
-  // This function assumes the app state has been updated before being called.
   exchangeBCHForTokens (inObj = {}) {
     try {
       const { bchQty, state } =
         inObj
 
-      // Initialize variables.
       const bch1 = state.bchBalance
       let token1
       let token2 = 0
       const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
       const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
 
-      // Subtract 270 satoshi tx fee
       const bch2 = this.adapters.wallet.bchjs.Util.floor8(bch1 + bchQty - 0.0000027)
 
-      // Use natural logarithm if wallet balance is less than 250 BCH.
       if (bch1 < bchOriginalBalance) {
         token1 =
           -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
         token2 =
           -1 * tokenOriginalBalance * Math.log(bch2 / bchOriginalBalance)
       } else {
-        // Use linear equation if balance is greater than 250 BCH.
-
         token1 = tokenOriginalBalance * (bch1 / bchOriginalBalance - 1)
         token2 = tokenOriginalBalance * (bch2 / bchOriginalBalance - 1)
       }
@@ -358,12 +316,10 @@ class Trade {
   }
 
   // User sent in tokens, exchange them for BCH.
-  // This function assumes the app state has been updated before being called.
   exchangeTokensForBCH (inObj = {}) {
     try {
       const { tokensIn, state } = inObj
 
-      // Initialize variables.
       let token1 = 0
       let token2 = 0
       let bch2 = 0
@@ -371,9 +327,7 @@ class Trade {
       const bchOriginalBalance = this.config.BCH_QTY_ORIGINAL
       const tokenOriginalBalance = this.config.TOKENS_QTY_ORIGINAL
 
-      // Use natural logarithm equations if wallet balance is less than 250 BCH
       if (bch1 < bchOriginalBalance) {
-        // Calculate the 'Effective' token balance prior to recieving the new tokens.
         token1 =
           -1 * tokenOriginalBalance * Math.log(bch1 / bchOriginalBalance)
 
@@ -384,8 +338,6 @@ class Trade {
           Math.pow(Math.E, (-1 * token2) / tokenOriginalBalance)
         bch2 = this.adapters.wallet.bchjs.Util.floor8(bch2)
       } else {
-        // Use linear equation if wallet balance is greater than (or equal to) 250 BCH.
-
         token1 = tokenOriginalBalance * (1 - bch1 / bchOriginalBalance)
 
         token2 = token1 + tokensIn
@@ -394,7 +346,7 @@ class Trade {
         bch2 = this.adapters.wallet.bchjs.Util.floor8(bch2)
       }
 
-      let bchOut = bch2 - bch1 - 0.0000027 // Subtract 270 satoshi tx fee
+      let bchOut = bch2 - bch1 - 0.0000027
       bchOut = Math.abs(this.adapters.wallet.bchjs.Util.floor8(bchOut))
 
       this.adapters.wlogger.debug(
@@ -411,4 +363,4 @@ class Trade {
   }
 }
 
-module.exports = Trade
+export default Trade

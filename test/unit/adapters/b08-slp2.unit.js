@@ -2,17 +2,16 @@
   Unit tests for the slp2.js library.
 */
 
-// Public npm libraries.
-const assert = require('chai').assert
-const sinon = require('sinon')
-const cloneDeep = require('lodash.clonedeep')
-const BchWallet = require('minimal-slp-wallet')
-
-// Local libraries.
-// const config = require('../../../config')
-const SLP2 = require('../../../src/adapters/slp2')
-const mockDataLib = require('../mocks/slp2.mock')
-const mockWallet = require('../mocks/testwallet.json')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import cloneDeep from 'lodash.clonedeep'
+import fs from 'fs'
+import BchWallet from 'minimal-slp-wallet'
+import SLP2 from '../../../src/adapters/slp2.js'
+import mockDataLib from '../mocks/slp2.mock.js'
+const mockWallet = JSON.parse(
+  fs.readFileSync(new URL('../mocks/testwallet.json', import.meta.url))
+)
 
 describe('#slp2.js', () => {
   let uut, sandbox, mockData

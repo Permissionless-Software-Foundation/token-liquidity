@@ -4,27 +4,19 @@
   folder.
 */
 
-'use strict'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-// const config = require('../../config')
-const fs = require('fs')
+import config from '../../config/index.js'
+import wlogger from './wlogger.js'
 
-const config = require('../../config')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-// Winston logger
-const wlogger = require('./wlogger')
-
-// const BCH = require('./bch')
-// const bch = new BCH()
-
-// const TokenLiquidity = require('./token-liquidity')
-// const tokenApp = new TokenLiquidity()
-
-const STATE_FILE_NAME = `${__dirname.toString()}/../../state/state.json`
+const STATE_FILE_NAME = path.join(__dirname, '../../state/state.json')
 
 class TLUtils {
-  // constructor () {}
-
   // Round a number to 8 decimal places, the standard used for Bitcoin.
   round8 (numIn) {
     return Math.floor(numIn * 100000000) / 100000000
@@ -34,7 +26,6 @@ class TLUtils {
   saveState (data) {
     try {
       wlogger.silly('entering util.js/saveState().')
-      // console.log(`saveState() data: ${JSON.stringify(data, null, 2)}`)
 
       const filename = STATE_FILE_NAME
 
@@ -47,7 +38,6 @@ class TLUtils {
 
           wlogger.silly('Successfully saved to state.json')
 
-          // console.log(`${name}.json written successfully.`)
           return resolve()
         })
       })
@@ -60,11 +50,8 @@ class TLUtils {
   // Open and read the state JSON file.
   readState () {
     try {
-      // Delete the cached copy of the data.
-      delete require.cache[require.resolve(STATE_FILE_NAME)]
-
-      const data = require(STATE_FILE_NAME)
-      return data
+      const data = fs.readFileSync(STATE_FILE_NAME, 'utf8')
+      return JSON.parse(data)
     } catch (err) {
       wlogger.debug('Error in util.js/readState()')
       throw new Error(`Could not open ${STATE_FILE_NAME}`)
@@ -74,17 +61,16 @@ class TLUtils {
   // Opens the wallet file and returns the contents.
   openWallet () {
     try {
-      let walletInfo
+      let walletPath
 
       if (process.env.TL_ENV === 'test') {
-        walletInfo = require(`${__dirname.toString()}/../../test/unit/mocks/fake-wallet.json`)
-        return walletInfo
+        walletPath = path.join(__dirname, '../../test/unit/mocks/fake-wallet.json')
+      } else {
+        walletPath = path.join(__dirname, '../../wallet-main.json')
       }
 
-      walletInfo = require(`${__dirname.toString()}/../../wallet-main.json`)
-      // console.log(`walletInfo in slp: ${JSON.stringify(walletInfo, null, 2)}`)
-
-      return walletInfo
+      const data = fs.readFileSync(walletPath, 'utf8')
+      return JSON.parse(data)
     } catch (err) {
       throw new Error('wallet file not found')
     }
@@ -132,4 +118,4 @@ class TLUtils {
   }
 }
 
-module.exports = TLUtils
+export default TLUtils

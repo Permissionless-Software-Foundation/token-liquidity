@@ -2,17 +2,15 @@
   Integration tests for the token-liquidity.js library.
 */
 
+import { assert } from 'chai'
+import config from '../../config/index.js'
+import TLLib from '../../src/adapters/token-liquidity.js'
+import BCH from '../../src/adapters/bch.js'
+
 process.env.NETWORK = 'mainnet'
 
-const config = require('../../config')
-
-const TLLib = require('../../src/adapters/token-liquidity')
 const tlLib = new TLLib()
-
-const BCH = require('../../src/adapters/bch')
 const bch = new BCH(config)
-
-const assert = require('chai').assert
 
 describe('#token-liquidity.js', () => {
   describe('#detectNewTxs', () => {
