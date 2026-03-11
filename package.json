@@ -13,10 +13,10 @@
     "test:temp:integration": "env-cmd mocha --timeout 15000 test/integration/wallet-integration.js",
     "lint": "standard --env mocha --fix",
     "docs": "./node_modules/.bin/apidoc -i src/ -o docs",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "coverage:report": "export TL_ENV=test && nyc --reporter=html mocha --recursive --exit --timeout 15000 test/unit/ test/e2e/automated/",
+    "coverage": "c8 report --reporter=text-lcov | coveralls",
+    "coverage:report": "export TL_ENV=test && c8 --reporter=html mocha --recursive --exit --timeout 15000 test/unit/ test/e2e/automated/",
     "prep-test": "node util/users/delete-all-test-users.js",
-    "test:all": "export TL_ENV=test && nyc --reporter=text mocha --recursive --exit --timeout 15000 test/unit/ test/e2e/automated/",
+    "test:all": "export TL_ENV=test && c8 --reporter=text mocha --recursive --exit --timeout 15000 test/unit/ test/e2e/automated/",
     "test:unit": "export TL_ENV=test && mocha --recursive --exit --timeout 15000 test/unit/",
     "test:e2e:auto": "export TL_ENV=test && mocha --exit --timeout 15000 test/e2e/automated/"
   },
@@ -64,6 +64,7 @@
   "devDependencies": {
     "ajv": "^5.5.2",
     "apidoc": "^0.26.0",
+    "c8": "^11.0.0",
     "chai": "^4.3.0",
     "coveralls": "^3.1.0",
     "eslint": "7.19.0",
@@ -76,7 +77,6 @@
     "lodash.clonedeep": "^4.5.0",
     "mocha": "^8.2.1",
     "nock": "^10.0.6",
-    "nyc": "^15.1.0",
     "semantic-release": "^17.4.3",
     "sinon": "^9.2.4",
     "standard": "^16.0.3"

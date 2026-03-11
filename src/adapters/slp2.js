@@ -6,7 +6,6 @@
 
 import BigNumber from 'bignumber.js'
 import pRetry from 'p-retry'
-import BchWallet from 'minimal-slp-wallet'
 
 import config from '../../config/index.js'
 import TLUtils from './util.js'
@@ -23,9 +22,7 @@ class SLP {
     // Dependency Injection
     this.wallet = localConfig.wallet
     if (!this.wallet) {
-      this.wallet = new BchWallet(undefined, {
-        interface: config.WALLET_INTERFACE
-      })
+      throw new Error('Instance of minimal-slp-wallet required when instantiating the SLP class.')
     }
 
     // Encapsulate dependencies

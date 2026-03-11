@@ -3,10 +3,12 @@
 */
 
 import { assert } from 'chai'
+import BchWallet from 'minimal-slp-wallet'
 import config from '../../config/index.js'
 import SLP2 from '../../src/adapters/slp2.js'
 
-const slp2 = new SLP2(config)
+const wallet = new BchWallet(undefined, { interface: config.WALLET_INTERFACE })
+const slp2 = new SLP2({ wallet })
 
 describe('#slp2', () => {
   // describe("#getTokenBalance", () => {
