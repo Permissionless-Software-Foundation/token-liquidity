@@ -46,11 +46,6 @@ class Wallet {
   // Get balances of BCH and tokens.
   async getBalances () {
     try {
-      if (!this.wallet.isInitialized) {
-        // await this.wallet.initialize()
-        await this.initWallet(this.config.mnemonic)
-      }
-
       // Update the wallet UTOXs.)
       await this.wallet.getUtxos()
 
