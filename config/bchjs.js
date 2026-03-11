@@ -2,9 +2,9 @@
   Configuration settings for bch-js and bch-api.
 */
 
-'use strict'
-
 // default rest API.
+import BCHJS from '@psf/bch-js'
+
 let RESTAPI = 'fullstack.cash'
 // let RESTAPI = 'bitcoin.com'
 
@@ -15,8 +15,6 @@ if (process.env.RESTAPI && process.env.RESTAPI !== '') {
 
 // Ensure bch-js can pick up the env var.
 process.env.RESTAPI = RESTAPI
-
-const BCHJS = require('@psf/bch-js')
 // const BITBOX = require('slp-sdk')
 
 const config = {}
@@ -47,4 +45,4 @@ if (RESTAPI === 'decatur') {
   config.RESTAPI = 'decatur'
 }
 
-module.exports = config
+export default config

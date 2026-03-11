@@ -2,9 +2,8 @@
   Mocks for the Adapter library.
 */
 
-const BchWallet = require('minimal-slp-wallet')
-
-const config = require('../../../../config')
+import BchWallet from 'minimal-slp-wallet'
+import config from '../../../../config/index.js'
 
 const localdb = {
   Users: class Users {
@@ -78,4 +77,5 @@ const slp = {
   tokenTxInfo: () => {}
 }
 
-module.exports = { localdb, bch, txs, wallet, wlogger, slp }
+export { localdb, bch, txs, wallet, wlogger, slp }
+export default { localdb, bch, txs, wallet, wlogger, slp }

@@ -2,8 +2,6 @@
   Contains unit test mocking data for testing the bch.js library.
 */
 
-'use strict'
-
 const balance = {
   page: 1,
   totalPages: 1,
@@ -517,4 +515,4 @@ const bchMockData = {
   fulcrum11Utxos
 }
 
-module.exports = bchMockData
+export default bchMockData

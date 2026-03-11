@@ -4,7 +4,7 @@
   be started by a bash shell script that will set these environment variables.
 */
 
-const BCHJS = require('@psf/bch-js')
+import BCHJS from '@psf/bch-js'
 
 // Establish the network, default to 'mainnet'
 const NETWORK = process.env.NETWORK ? process.env.NETWORK : 'mainnet'
@@ -53,7 +53,7 @@ configOut = {
     'c71a2e41683c3a5d4683b705f85da09e70ddc2ce77f3abeda6106399a660a469',
 
   // bch-js settings.
-  MAINNET_REST: process.env.REST_URL || 'https://bchn.fullstack.cash/v5/',
+  MAINNET_REST: process.env.REST_URL || 'https://api.fullstack.cash/v6/',
   BCHLIB: BCHJS,
   getAPITokenAtStartup: !process.env.DO_NOT_GET_JWT,
 
@@ -62,9 +62,10 @@ configOut = {
   fullstackAuthServer: process.env.FULLSTACK_AUTH ? process.env.FULLSTACK_AUTH : 'https://auth.fullstack.cash',
   fullstackLogin: process.env.FULLSTACKLOGIN ? process.env.FULLSTACKLOGIN : 'demo@demo.com',
   fullstackPass: process.env.FULLSTACKPASS ? process.env.FULLSTACKPASS : 'demo',
+  restURL: process.env.REST_URL ? process.env.REST_URL : 'https://api.fullstack.cash/v6/',
 
   // Placeholder. This expected to be overwritten by an environment variable.
   mnemonic: process.env.MNEMONIC ? process.env.MNEMONIC : 'drum salute decline increase earth cloth tobacco gospel appear motor fever soft'
 }
 
-module.exports = configOut
+export default configOut

@@ -3,12 +3,10 @@
   This library wraps the nodemailer npm package.
 */
 
-'use strict'
-const nodemailer = require('nodemailer')
+import nodemailer from 'nodemailer'
 
-const config = require('../../config')
-
-const wlogger = require('./wlogger')
+import config from '../../config/index.js'
+import wlogger from './wlogger.js'
 
 let _this
 
@@ -28,8 +26,8 @@ class NodeMailer {
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: _this.config.emailUser, // email username
-        pass: _this.config.emailPassword // email password
+        user: _this.config.emailUser,
+        pass: _this.config.emailPassword
       }
     })
     return transporter
@@ -57,20 +55,14 @@ class NodeMailer {
         throw new Error("Property 'subject' must be a string!")
       }
 
-      // Use the provided html or use a default html generated from the input data
-
       const html = data.htmlData || _this.getHtmlFromObject(data)
       const sendObj = {
-        // from: `${data.email}`, // sender address
         from: data.email,
-        to: data.to, // list of receivers
-        // subject: `Pearson ${subject}`, // Subject line
+        to: data.to,
         subject: data.subject,
-        // html: '<b>This is a test email</b>' // html body
         html
       }
 
-      // send mail with defined transport object
       const info = await _this.transporter.sendMail(sendObj)
       console.log('Message sent: %s', info.messageId)
 
@@ -86,7 +78,6 @@ class NodeMailer {
       if (!emailList || !Array.isArray(emailList)) {
         throw new Error("Property 'emailList' must be a array!")
       }
-      //  Email list can't be empty
       if (!emailList.length > 0) {
         throw new Error("Property 'emailList' cant be empty!")
       }
@@ -98,7 +89,6 @@ class NodeMailer {
     }
   }
 
-  // get the email html from object
   getHtmlFromObject (objectData) {
     try {
       if (!objectData || typeof objectData !== 'object') {
@@ -114,12 +104,10 @@ class NodeMailer {
       const obj = {}
       Object.assign(obj, objectData)
 
-      // neccesary data
       const msg = obj.formMessage.replace(/(\r\n|\n|\r)/g, '<br />')
       const now = new Date()
       const subject = obj.subject
 
-      // Delete unneccesary data if it exist
       delete obj.to
       delete obj.subject
       delete obj.from
@@ -129,10 +117,8 @@ class NodeMailer {
       const bodyJson = obj
       bodyJson.message = msg
 
-      // Html body
       let htmlBody = ''
 
-      // maps the object and converts it into html format
       Object.keys(bodyJson).forEach(function (key) {
         htmlBody += `${key}: ${bodyJson[key]}<br/>`
       })
@@ -151,4 +137,4 @@ class NodeMailer {
   }
 }
 
-module.exports = NodeMailer
+export default NodeMailer

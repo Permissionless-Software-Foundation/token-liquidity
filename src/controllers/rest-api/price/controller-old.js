@@ -1,15 +1,16 @@
+import { fileURLToPath } from 'url'
+import path from 'path'
+import util from 'util'
+import config from '../../../../config/index.js'
+import TLUtils from '../../../adapters/util.js'
 
-const config = require('../../../config')
-
-// const lib = require('../../lib/token-util')
-const TLUtils = require('../../lib/util')
+import TokenLiquidity from '../../../adapters/token-liquidity.js'
 const tlUtils = new TLUtils()
 
-const TokenLiquidity = require('../../lib/token-liquidity')
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const tokenApp = new TokenLiquidity()
 
 // Used for debugging and iterrogating JS objects.
-const util = require('util')
 util.inspect.defaultOptions = { depth: 1 }
 
 /**
@@ -77,6 +78,6 @@ async function getPrice (ctx) {
   }
 }
 
-module.exports = {
+export default {
   getPrice
 }

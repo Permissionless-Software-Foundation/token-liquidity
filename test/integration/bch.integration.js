@@ -2,13 +2,12 @@
   Integration tests for the bch.js library.
 */
 
-const assert = require('chai').assert
+import { assert } from 'chai'
+import config from '../../config/index.js'
+import BCH from '../../src/adapters/bch.js'
 
 process.env.NETWORK = 'mainnet'
 
-const config = require('../../config')
-
-const BCH = require('../../src/adapters/bch')
 const bch = new BCH(config)
 
 describe('#bch.js', () => {

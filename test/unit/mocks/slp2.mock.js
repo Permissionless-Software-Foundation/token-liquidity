@@ -340,7 +340,18 @@ const bchUtxos01 = [
   }
 ]
 
-module.exports = {
+export {
+  tokenBalance01,
+  tokenTx01,
+  tokenTx02,
+  nonTokenTx01,
+  fulcrumEmtpyUtxos,
+  tokenUtxos01,
+  fulcrumUtxos,
+  bchUtxos01
+}
+
+export default {
   tokenBalance01,
   tokenTx01,
   tokenTx02,

@@ -2,38 +2,26 @@
   Library for working with BCH.
 */
 
-'use strict'
-
-// Local libraries
-const TLUtils = require('./util')
-const wlogger = require('./wlogger')
-const config = require('../../config')
-
-// Mainnet by default
-// const bchjs = new this.config.BCHLIB({ restURL: this.config.MAINNET_REST })
-
-// const SATS_PER_BCH = 100000000
-
-// let _this
+import config from '../../config/index.js'
+import TLUtils from './util.js'
+import wlogger from './wlogger.js'
 
 class BCH {
   constructor (localConfig = {}) {
     // Dependency Injection
     this.bchjs = localConfig.bchjs
+    if (!this.bchjs && localConfig.BCHLIB) {
+      this.bchjs = new localConfig.BCHLIB()
+    }
+    if (!this.bchjs && config.BCHLIB) {
+      this.bchjs = new config.BCHLIB()
+    }
     if (!this.bchjs) {
       throw new Error('Instance of bch-js required when instantiating bch.js Adapter library.')
     }
 
     this.config = config
-
-    // this.bchjs = new this.config.BCHLIB({
-    //   restURL: this.config.MAINNET_REST
-    //   // apiToken: process.env.BCHJSTOKEN,
-    // })
-
     this.tlUtils = new TLUtils()
-
-    // _this = this
   }
 
   // Get the balance in BCH of a BCH address.
@@ -42,15 +30,12 @@ class BCH {
   async getBCHBalance (addr, verbose = false) {
     try {
       const fulcrumBalance = await this.bchjs.Electrumx.balance(addr)
-      // console.log(`fulcrumBalance: ${JSON.stringify(fulcrumBalance, null, 2)}`)
 
       const confirmedBalance = this.bchjs.BitcoinCash.toBitcoinCash(
         fulcrumBalance.balance.confirmed
       )
 
       if (verbose) {
-        // const resultToDisplay = confirmedBalance
-        // resultToDisplay.txids = []
         console.log(fulcrumBalance)
       }
 
@@ -85,7 +70,6 @@ class BCH {
             thisUtxo.tx_hash,
             thisUtxo.tx_pos
           )
-          // console.log(`isValid: ${JSON.stringify(isValid, null, 2)}`)
 
           if (isValid === null) {
             wlogger.info(
@@ -111,26 +95,18 @@ class BCH {
   async recievedBch (txid, addr) {
     try {
       wlogger.silly('Entering receivedBch().')
-      // console.log(`addr: ${addr}`)
-      // console.log(`this.bchjs.restURL: ${this.bchjs.restURL}`)
 
-      // const txDetails = await this.bchjs.Transaction.details(txid)
-      // const txDetails = await this.bchjs.Blockbook.tx(txid)
       const txDetails = await this.bchjs.RawTransactions.getRawTransaction(
         txid,
         true
       )
-      // console.log(`txDetails: ${JSON.stringify(txDetails, null, 2)}`)
 
       const vout = txDetails.vout
-      // console.log(`vout: ${JSON.stringify(vout, null, 2)}`)
 
       // Loop through each vout in the TX.
       for (let i = 0; i < vout.length; i++) {
         const thisVout = vout[i]
-        // console.log(`thisVout: ${JSON.stringify(thisVout, null, 2)}`);
         const value = Number(thisVout.value)
-        // console.log(`value: ${value}`)
 
         // Skip if value is zero.
         if (thisVout.value === 0.0) continue
@@ -141,15 +117,10 @@ class BCH {
         // Skip if vout has no addresses field.
         if (thisVout.scriptPubKey.addresses) {
           const addresses = thisVout.scriptPubKey.addresses
-          // console.log(`addresses: ${JSON.stringify(addresses, null, 2)}`)
 
-          // Note: Assuming addresses[] only has 1 element.
-          // Not sure how there can be multiple addresses if the value is not an array.
           let address = addresses[0] // Legacy address
-          // wlogger.debug('address: ', address)
           address = this.bchjs.Address.toCashAddress(address)
 
-          // if (address === addr) return this.tlUtils.round8(value / SATS_PER_BCH)
           if (address === addr) return value
         }
       }
@@ -178,13 +149,10 @@ class BCH {
       const RECV_ADDR = obj.recvAddr
       const satoshisToSend = obj.satoshisToSend
 
-      // const walletInfo = this.tlUtils.openWallet()
-
       const addrDetails = await this.getBCHBalance(
         this.config.BCH_ADDR,
         false
       )
-      // wlogger.debug(`addrDetails: ${JSON.stringify(addrDetails, null, 2)}`)
 
       const balance = addrDetails
       wlogger.verbose(
@@ -208,23 +176,17 @@ class BCH {
       wlogger.debug(`Sender Legacy Address: ${SEND_ADDR_LEGACY}`)
       wlogger.debug(`Receiver Legacy Address: ${RECV_ADDR_LEGACY}`)
 
-      // const utxos = await this.bchjs.Blockbook.utxo(this.config.BCH_ADDR)
       const fulcrumResult = await this.bchjs.Electrumx.utxo(
         this.config.BCH_ADDR
       )
       const utxos = fulcrumResult.utxos
-      // console.log(`utxos: ${JSON.stringify(utxos, null, 2)}`)
 
       const utxo = await this.findBiggestUtxo(utxos)
       wlogger.debug('selected utxo: ', utxo)
 
-      // Ensure compatiblity between indexers.
-      // utxo.value = utxo.amount
-
       // instance of transaction builder
       const transactionBuilder = new this.bchjs.TransactionBuilder()
 
-      // const satoshisToSend = 1000;
       const originalAmount = utxo.value
       const vout = utxo.tx_pos
       const txid = utxo.tx_hash
@@ -283,8 +245,6 @@ class BCH {
       const hex = tx.toHex()
 
       return hex
-      // console.log(`Transaction raw hex: `);
-      // console.log(`${hex}`);
     } catch (err) {
       wlogger.error('Error in bch.js/createBchTx().')
       throw err
@@ -353,7 +313,6 @@ class BCH {
       const appAddr = this.config.BCH_ADDR
 
       // get the UTXO associated with the app address.
-      // const utxos = await this.bchjs.Blockbook.utxo(appAddr)
       const fulcrumResult = await this.bchjs.Electrumx.utxo(appAddr)
       const utxos = fulcrumResult.utxos
 
@@ -388,9 +347,6 @@ class BCH {
       )
       const changePath = this.bchjs.HDNode.derivePath(account, '0/0')
 
-      // Generate an EC key pair for signing the transaction.
-      // const keyPair = this.bchjs.HDNode.toKeyPair(changePath)
-
       // get the cash address
       const cashAddress = this.bchjs.HDNode.toCashAddress(changePath)
       console.log(`cashAddress: ${JSON.stringify(cashAddress, null, 2)}`)
@@ -402,10 +358,6 @@ class BCH {
         satoshisAmount = satoshisAmount + utxo.value
         transactionBuilder.addInput(utxo.tx_hash, utxo.tx_pos)
       }
-
-      // if (satoshisAmount < 546) {
-      //   throw new Error('Original amount is zero. No BCH to send.')
-      // }
 
       // Get byte count to calculate fee. paying 1 sat/byte
       const byteCount = this.bchjs.BitcoinCash.getByteCount(
@@ -446,10 +398,6 @@ class BCH {
       const hex = tx.toHex()
 
       return hex
-
-      // Broadcast trasaction
-      // const broadcast = await this.broadcastBchTx(hex)
-      // return broadcast
     } catch (error) {
       wlogger.error('Error in bch.js/consolidateUtxos()')
       throw error
@@ -471,31 +419,21 @@ class BCH {
         txid,
         true
       )
-      // console.log(`txData: ${JSON.stringify(txData, null, 2)}`)
 
       // Decode the hex into normal text.
       const script = this.bchjs.Script.toASM(
         Buffer.from(txData.vout[0].scriptPubKey.hex, 'hex')
       ).split(' ')
-      // console.log(`script: ${JSON.stringify(script, null, 2)}`)
 
       // If there is no OP_RETURN present, then
       if (script[0] !== 'OP_RETURN') return retObj
 
       // Decode the command
       const cmd = Buffer.from(script[2], 'hex').toString('ascii')
-      // cmd = cmd.split(' ')
-      // console.log(`cmd: ${JSON.stringify(cmd, null, 2)}`)
 
-      // if (cmd[0] === 'BURN') {
       if (cmd.indexOf('BURN') > -1) {
-        // let qty = Number(cmd[1])
-        // console.log(`qty: ${qty}`)
-        // qty = Number(qty)
-
         retObj.isValid = true
         retObj.type = 'burn'
-        // retObj.qty = qty
       }
 
       return retObj
@@ -570,4 +508,4 @@ class BCH {
   }
 }
 
-module.exports = BCH
+export default BCH

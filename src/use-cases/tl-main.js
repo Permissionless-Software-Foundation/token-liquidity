@@ -2,16 +2,13 @@
   Main token-liquidity business logic.
 */
 
-// Global npm libraries
-
 // Local libraries
-const config = require('../../config')
-const Trade = require('./trade')
-// const wlogger = require('./wlogger')
+import config from '../../config/index.js'
+import { Trade } from './trade.js'
 
 let _this
 
-class TLMain {
+export class TLMain {
   constructor (localConfig = {}) {
     // Dependency Injection
     this.adapters = localConfig.adapters
@@ -82,10 +79,21 @@ class TLMain {
   // spot price of BCH.
   async updateState () {
     try {
+      // console.log('_this.adapters.wallet: ', _this.adapters.wallet)
+
+      const walletAdapter = _this.adapters.wallet
+      const walletInstance = walletAdapter.wallet
+      const needsInit = walletInstance && walletInstance.isInitialized === false
+      const canInit = typeof walletAdapter.initWallet === 'function'
+
+      if (needsInit && canInit) {
+        await _this.adapters.wallet.initWallet(_this.config.mnemonic)
+      }
+
       // Get balances of wallet
       const balance = await _this.adapters.wallet.getBalances()
       // 11/6/22 Added this debug statement to catch an error showing up in production.
-      // console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
+      console.log(`Wallet balances: ${JSON.stringify(balance, null, 2)}`)
 
       // Calculate the sat and BCH balances.
       _this.state.satBalance = balance.sats
@@ -94,7 +102,7 @@ class TLMain {
       // Get the balance of the app token.
       const targetToken = balance.tokens.filter(x => x.tokenId === _this.config.slpTokenId)
       // 11/6/22 Added this debug statement to catch an error showing up in production.
-      // console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
+      console.log(`targetToken: ${JSON.stringify(targetToken, null, 2)}`)
       _this.state.tokenBalance = targetToken[0].qty
 
       // Get the spot price of BCH
@@ -177,4 +185,4 @@ class TLMain {
   }
 }
 
-module.exports = TLMain
+export default TLMain

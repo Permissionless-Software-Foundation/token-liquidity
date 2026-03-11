@@ -1,5 +1,5 @@
-const server = require('./bin/server.js')
-// const { startTokenLiquidity } = require('./bin/token-liquidity')
+import server from './bin/server.js'
+// import { startTokenLiquidity } from './bin/token-liquidity.js'
 
 async function startServer () {
   await server.startServer()

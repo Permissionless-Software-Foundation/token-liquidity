@@ -2,13 +2,9 @@
   Contains mock of Wormhole SDK, which extends the BITBOX SDK mock.
 */
 
-'use strict'
-
-const sinon = require('sinon')
-const { bitboxMock } = require('./bitbox')
-
-// Inspect JS Objects.
-const util = require('util')
+import sinon from 'sinon'
+import { bitboxMock } from './bitbox.js'
+import util from 'util'
 util.inspect.defaultOptions = {
   showHidden: true,
   colors: true
@@ -57,6 +53,4 @@ wormholeMock.DataRetrieval = {
   transaction: sinon.stub().returns(mockTransaction)
 }
 
-module.exports = {
-  wormholeMock
-}
+export { wormholeMock }

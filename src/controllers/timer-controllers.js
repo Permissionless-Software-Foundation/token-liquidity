@@ -6,7 +6,7 @@
 // Used to retain scope of 'this', when the scope is lost.
 let _this
 
-class TimerControllers {
+export class TimerControllers {
   constructor (localConfig = {}) {
     // Dependency Injection.
     this.adapters = localConfig.adapters
@@ -120,4 +120,4 @@ class TimerControllers {
   }
 }
 
-module.exports = TimerControllers
+export default TimerControllers

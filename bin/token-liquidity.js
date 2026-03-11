@@ -2,27 +2,41 @@
   Liquidity app for SLP BCH tokens inspired by Bancors whitepaper
 */
 
-'use strict'
-
-const config = require('../config')
-config.bchBalance = config.BCH_QTY_ORIGINAL
-config.tokenBalance = config.TOKENS_QTY_ORIGINAL
+import config from '../config/index.js'
 
 // Instantiate the JWT handling library for FullStack.cash.
-const JwtLib = require('jwt-bch-lib')
+import JwtLib from 'jwt-bch-lib'
+
+// App utility functions library.
+import TLUtils from '../src/adapters/util.js'
+
+// Email contact library.
+import Email from '../src/adapters/contact.js'
+
+// const SLP = require('../src/lib/slp')
+import SLP2 from '../src/adapters/slp2.js'
+import BCH from '../src/adapters/bch.js'
+// let slp = new SLP(config)
+// let bch = new BCH(config)
+
+import PQueue from 'p-queue'
+
+// const Transactions = require('../src/lib/transactions')
+// let txs = new Transactions()
+
+import TokenLiquidity from '../src/adapters/token-liquidity.js'
+
+// Winston logger
+import wlogger from '../src/adapters/wlogger.js'
+config.bchBalance = config.BCH_QTY_ORIGINAL
+config.tokenBalance = config.TOKENS_QTY_ORIGINAL
 const jwtLib = new JwtLib({
   // Overwrite default values with the values in the config file.
   server: 'https://auth.fullstack.cash',
   login: process.env.FULLSTACKLOGIN,
   password: process.env.FULLSTACKPASS
 })
-
-// App utility functions library.
-const TLUtils = require('../src/adapters/util')
 const tlUtil = new TLUtils()
-
-// Email contact library.
-const Email = require('../src/adapters/contact')
 const email = new Email()
 
 // Check all environment variables before starting the app.
@@ -35,28 +49,12 @@ try {
   console.error('No wallet file found. Did you create a wallet-main.json file?')
   process.exit(1)
 }
-
-// const SLP = require('../src/lib/slp')
-const SLP2 = require('../src/adapters/slp2')
-const BCH = require('../src/adapters/bch')
 let bch, slp2
-// let slp = new SLP(config)
-// let bch = new BCH(config)
-
-const { default: PQueue } = require('p-queue')
 const queue = new PQueue({ concurrency: 1 })
-
-// const Transactions = require('../src/lib/transactions')
-// const txs = new Transactions()
-
-const TokenLiquidity = require('../src/adapters/token-liquidity')
 const lib = new TokenLiquidity()
 
 // Add the queue to the token-liquidity library
 lib.queue = queue
-
-// Winston logger
-const wlogger = require('../src/adapters/wlogger')
 
 const FIVE_MINUTES = 60000 * 5
 const CONSOLIDATE_INTERVAL = 60000 * 100
@@ -385,6 +383,6 @@ function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-module.exports = {
+export {
   startTokenLiquidity
 }

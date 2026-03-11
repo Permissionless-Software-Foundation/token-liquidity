@@ -2,12 +2,13 @@
   Integration tests for the slp2.js library
 */
 
-const assert = require('chai').assert
+import { assert } from 'chai'
+import BchWallet from 'minimal-slp-wallet'
+import config from '../../config/index.js'
+import SLP2 from '../../src/adapters/slp2.js'
 
-const config = require('../../config')
-
-const SLP2 = require('../../src/adapters/slp2')
-const slp2 = new SLP2(config)
+const wallet = new BchWallet(undefined, { interface: config.WALLET_INTERFACE })
+const slp2 = new SLP2({ wallet })
 
 describe('#slp2', () => {
   // describe("#getTokenBalance", () => {

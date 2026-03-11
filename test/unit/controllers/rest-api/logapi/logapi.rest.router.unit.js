@@ -2,16 +2,9 @@
   Unit tests for the REST API handler for the /users endpoints.
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local support libraries
-// const adapters = require('../../../mocks/adapters')
-// const UseCasesMock = require('../../../mocks/use-cases')
-// const app = require('../../../mocks/app-mock')
-
-const LogsRouter = require('../../../../../src/controllers/rest-api/logapi')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import LogsRouter from '../../../../../src/controllers/rest-api/logapi/index.js'
 let uut
 let sandbox
 // let ctx

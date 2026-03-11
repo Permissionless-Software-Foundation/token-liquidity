@@ -3,14 +3,13 @@
 */
 
 /* eslint-disable no-useless-escape */
+import config from '../../config/index.js'
+import NodeMailer from './nodemailer.js'
+import wlogger from './wlogger.js'
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
-const config = require('../../config')
-
-const NodeMailer = require('./nodemailer')
 const nodemailer = new NodeMailer()
-const wlogger = require('./wlogger')
-
 let _this
 
 class ContactLib {
@@ -49,7 +48,6 @@ class ContactLib {
 
       console.log(`Trying send message to : ${_to}`)
 
-      // emailObj.subject = 'Someone wants contact with you.'
       emailObj.to = _to
 
       const result = await _this.nodemailer.sendEmail(emailObj)
@@ -62,15 +60,10 @@ class ContactLib {
 
   // Send an email alert about an error that can't be handled by the Token
   // Liquidity app.
-  // The emailObj input should have the following properties:
-  // - errorObj: Required. A Error object containing the error message and stack trace.
-  // - callerMsg: Optional. Any custom message from the function calling this method.
   async sendTLEmailAlert (emailObj) {
     try {
       // Exit if the server is not set up to send email alerts.
       if (!this.config.useEmailAlerts) return false
-
-      // console.log(`emailObj: ${JSON.stringify(emailObj, null, 2)}`)
 
       const now = new Date()
 
@@ -93,7 +86,6 @@ class ContactLib {
       emailObj.email = this.config.emailUser
       emailObj.formMessage = htmlMsg
       emailObj.emailList = this.config.emailRecievers
-      // emailObj.subject = 'Alert from Token Liquidity app'
       emailObj.subject = this.config.emailMachineName
 
       const result = await this.sendEmail(emailObj)
@@ -105,4 +97,5 @@ class ContactLib {
     }
   }
 }
-module.exports = ContactLib
+
+export default ContactLib

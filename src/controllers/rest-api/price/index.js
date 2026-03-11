@@ -1,15 +1,14 @@
 // Public npm libraries.
-const Router = require('koa-router')
+import Router from 'koa-router'
 
 // Local libraries.
-const PriceRESTControllerLib = require('./controller')
+import PriceRESTControllerLib from './controller.js'
 // const Validators = require('../../../middleware/validators')
 
 let _this
 
-class PriceRouter {
+export class PriceRouter {
   constructor (localConfig = {}) {
-    // Dependency Injection.
     this.adapters = localConfig.adapters
 
     if (!this.adapters) {
@@ -28,11 +27,8 @@ class PriceRouter {
       adapters: this.adapters,
       useCases: this.useCases
     }
-    // Encapsulate dependencies.
     this.priceRESTController = new PriceRESTControllerLib(dependencies)
-    // this.validators = new Validators()
 
-    // Instantiate the router and set the base route.
     const baseUrl = '/price'
     this.router = new Router({ prefix: baseUrl })
 
@@ -46,18 +42,15 @@ class PriceRouter {
       )
     }
 
-    // Define the routes and attach the controller.
     this.router.get('/', this.getPrice)
 
-    // Attach the Controller routes to the Koa app.
     app.use(this.router.routes())
     app.use(this.router.allowedMethods())
   }
 
   async getPrice (ctx, next) {
-    // await _this.validators.ensureUser(ctx, next)
     await _this.priceRESTController.getPrice(ctx, next)
   }
 }
 
-module.exports = PriceRouter
+export default PriceRouter

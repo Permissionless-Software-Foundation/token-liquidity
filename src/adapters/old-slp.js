@@ -2,29 +2,15 @@
   This library exports a class of functions for working with SLP tokens.
 */
 
-'use strict'
+import pRetry from 'p-retry'
 
-// Used for debugging and iterrogating JS objects.
-// const util = require('util')
-// util.inspect.defaultOptions = { depth: 5 }
+import config from '../../config/index.js'
+import Email from './contact.js'
+import TLUtils from './util.js'
+import BCH from './bch.js'
+import wlogger from './wlogger.js'
 
-const pRetry = require('p-retry')
-
-const config = require('../../config')
-
-// Email contact library.
-const Email = require('./contact')
-
-const TLUtils = require('./util')
 const tlUtils = new TLUtils()
-
-// BCH library
-const BCH = require('./bch')
-// const bch = new BCH()
-
-// Winston logger
-const wlogger = require('./wlogger')
-
 let _this
 
 class SLP {
@@ -733,4 +719,4 @@ class SLP {
   }
 }
 
-module.exports = SLP
+export default SLP

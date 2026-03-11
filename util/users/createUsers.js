@@ -1,20 +1,17 @@
-const mongoose = require('mongoose')
-
-const config = require('../../config')
+import mongoose from 'mongoose'
+import config from '../../config/index.js'
+import User from '../../src/adapters/localdb/models/users.js'
 
 const EMAIL = 'test@test.com'
 const PASSWORD = 'pass'
 
 async function addUser () {
-  // Connect to the Mongo Database.
   mongoose.Promise = global.Promise
-  mongoose.set('useCreateIndex', true) // Stop deprecation warning.
+  mongoose.set('useCreateIndex', true)
   await mongoose.connect(
     config.database,
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
-
-  const User = require('../../src/models/users')
 
   const userData = {
     email: EMAIL,
@@ -22,18 +19,13 @@ async function addUser () {
   }
 
   const user = new User(userData)
-
-  // Enforce default value of 'user'
   user.type = 'user'
 
   await user.save()
-
   await mongoose.connection.close()
 
   console.log(`User ${EMAIL} created.`)
 }
 addUser()
 
-module.exports = {
-  addUser
-}
+export { addUser }

@@ -1,7 +1,7 @@
-const mongoose = require('mongoose')
-const bcrypt = require('bcryptjs')
-const config = require('../../../../config')
-const jwt = require('jsonwebtoken')
+import mongoose from 'mongoose'
+import bcrypt from 'bcryptjs'
+import config from '../../../../config/index.js'
+import jwt from 'jsonwebtoken'
 
 const User = new mongoose.Schema({
   type: { type: String, default: 'user' },
@@ -51,4 +51,4 @@ User.methods.generateToken = function generateToken () {
 }
 
 // export default mongoose.model('user', User)
-module.exports = mongoose.model('user', User)
+export default mongoose.model('user', User)

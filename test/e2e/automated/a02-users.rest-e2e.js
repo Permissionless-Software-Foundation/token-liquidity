@@ -2,18 +2,15 @@
   Automated e2e tests for /users REST API endpoint.
 */
 
-// Global npm libraries
-const assert = require('chai').assert
-const axios = require('axios').default
-const sinon = require('sinon')
-const util = require('util')
-
-// Local libraries
-const testUtils = require('../../utils/test-utils')
-const config = require('../../../config')
-const UserController = require('../../../src/controllers/rest-api/users/controller')
-const Adapters = require('../../../src/adapters')
-const UseCases = require('../../../src/use-cases/')
+import { assert } from 'chai'
+import axios from 'axios'
+import sinon from 'sinon'
+import util from 'util'
+import * as testUtils from '../../utils/test-utils.js'
+import config from '../../../config/index.js'
+import UserController from '../../../src/controllers/rest-api/users/controller.js'
+import Adapters from '../../../src/adapters/index.js'
+import UseCases from '../../../src/use-cases/index.js'
 
 util.inspect.defaultOptions = { depth: 1 }
 

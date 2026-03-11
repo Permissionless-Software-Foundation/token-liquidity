@@ -23,6 +23,4 @@ const data = [
     timestamp: '2020-11-14T12:15:55.231Z'
   }
 ]
-module.exports = {
-  data
-}
+export { data }

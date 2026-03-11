@@ -242,10 +242,10 @@ const mockTxSender = {
   blocktime: 1606196080
 }
 
-const txMockData = {
+export const txMockData = {
   mockTransactions,
   mockPreTx,
   mockTxSender
 }
 
-module.exports = txMockData
+export default txMockData

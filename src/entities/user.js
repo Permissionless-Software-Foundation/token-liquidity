@@ -2,7 +2,7 @@
   User Entity
 */
 
-class User {
+export class User {
   validate ({ name, email, password } = {}) {
     // Input Validation
     if (!email || typeof email !== 'string') {
@@ -21,4 +21,4 @@ class User {
   }
 }
 
-module.exports = User
+export default User

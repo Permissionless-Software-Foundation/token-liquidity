@@ -2,11 +2,11 @@
   Integration tests for the transactions.js library.
 */
 
-const assert = require('chai').assert
+import { assert } from 'chai'
+import Transactions from '../../src/adapters/transactions.js'
 
 process.env.NETWORK = 'mainnet'
 
-const Transactions = require('../../src/adapters/transactions')
 const transactions = new Transactions()
 
 describe('#transactions.js', () => {

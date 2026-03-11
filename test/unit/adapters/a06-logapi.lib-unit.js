@@ -1,12 +1,10 @@
-const assert = require('chai').assert
+import { assert } from 'chai'
+import sinon from 'sinon'
+import util from 'util'
 
-const sinon = require('sinon')
-
-const util = require('util')
+import LogsApiLib from '../../../src/adapters/logapi.js'
+import { data as mockData } from '../mocks/log-api-mock.js'
 util.inspect.defaultOptions = { depth: 1 }
-
-const LogsApiLib = require('../../../src/adapters/logapi')
-const mockData = require('../mocks/log-api-mock')
 
 const context = {}
 let sandbox
@@ -117,7 +115,7 @@ describe('#LogsApiLib', () => {
 
     it('should sort the log data', async () => {
       try {
-        const data = mockData.data
+        const data = mockData
         const result = await uut.filterLogs(data)
         assert.isArray(result)
         assert.property(result[1], 'message')
@@ -130,7 +128,7 @@ describe('#LogsApiLib', () => {
 
     it('should sort the log data with a limit', async () => {
       try {
-        const data = mockData.data
+        const data = mockData
         const limit = 1
         const result = await uut.filterLogs(data, limit)
         assert.isArray(result)

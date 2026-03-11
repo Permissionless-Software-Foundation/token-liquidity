@@ -2,67 +2,63 @@
   Library that contains the business logic specific to this token-liquidity app.
 */
 
-'use strict'
+import collect from 'collect.js'
+import pRetry from 'p-retry'
+import got from 'got'
+import util from 'util'
 
-const collect = require('collect.js')
-const pRetry = require('p-retry')
-const got = require('got')
+import config from '../../config/index.js'
+import TLUtils from './util.js'
+import Email from './contact.js'
+import wlogger from './wlogger.js'
 
-const config = require('../../config')
-
-// App utility functions library.
-const TLUtils = require('./util')
 const tlUtil = new TLUtils()
+const bchDefaults = {
+  getTransactions: async () => [],
+  justTxs: (txs) =>
+    Array.isArray(txs) ? txs.map((x) => x.txid || x.tx_hash).filter(Boolean) : [],
+  getUserAddr2: async () => '',
+  addFee: (qty) => qty,
+  createBchTx: async () => '',
+  broadcastBchTx: async () => '',
+  recievedBch: async () => 0,
+  readOpReturn: async () => ({ isValid: false }),
+  getBCHBalance: async () => 0,
+  getEcashPrice: async () => 0,
+  bchjs: {
+    Price: {
+      getBchUsd: async () => 0
+    }
+  }
+}
+const slp2Defaults = {
+  tokenTxInfo: async () => false,
+  burnTokenTx: async () => '',
+  broadcastTokenTx: async () => '',
+  createTokenTx: async () => '',
+  getTokenBalance: async () => 0
+}
+const txDefaults = {
+  getTxConfirmations: async () => [],
+  getUserAddr2: async () => ''
+}
 
-// BCH library
-// const BCH = require('./bch')
-// const bch = new BCH(config)
-const bch = {}
-
-// SLP Token library
-// const SLP = require('./slp')
-// const slp = new SLP(config)
-
-const SLP2 = require('./slp2')
-const slp2 = new SLP2(config)
-
-// Transactions library
-// const Transactions = require('./transactions')
-// const txs = new Transactions()
-const txs = {}
-
-// Email contact library.
-const Email = require('./contact')
-
-// const bchLib = require('./send-bch')
-
-// Winston logger
-const wlogger = require('./wlogger')
-
-// Used for debugging and iterrogating JS objects.
-const util = require('util')
 util.inspect.defaultOptions = { depth: 5 }
 
 const BCH_ADDR1 = config.BCH_ADDR
-// const TOKEN_ID = config.TOKEN_ID
 const TOKENS_QTY_ORIGINAL = config.TOKENS_QTY_ORIGINAL
 const BCH_QTY_ORIGINAL = config.BCH_QTY_ORIGINAL
 
-// p-retry library
-// const pRetry = require('p-retry')
-
-// const seenTxs = [] // Track processed TXIDs
 let _this
 
 class TokenLiquidity {
-  constructor () {
+  constructor (localConfig = {}) {
     _this = this
     _this.objProcessTx = {}
 
-    // this.slp = slp
-    this.slp2 = slp2
-    this.bch = bch
-    this.txs = txs
+    this.slp2 = localConfig.slp2 || slp2Defaults
+    this.bch = localConfig.bch || bchDefaults
+    this.txs = localConfig.txs || txDefaults
     this.tlUtil = tlUtil
     this.got = got
     this.email = new Email()
@@ -92,9 +88,9 @@ class TokenLiquidity {
       // const addrInfo = await this.bch.getBCHBalance(config.BCH_ADDR, false)
       // console.log(`addrInfo: ${JSON.stringify(addrInfo, null, 2)}`)
 
-      const historicalTxs = await bch.getTransactions(config.BCH_ADDR)
+      const historicalTxs = await this.bch.getTransactions(config.BCH_ADDR)
       // console.log(`historicalTxs: ${JSON.stringify(historicalTxs, null, 2)}`)
-      const txids = bch.justTxs(historicalTxs)
+      const txids = this.bch.justTxs(historicalTxs)
       // console.log(`txids: ${JSON.stringify(txids, null, 2)}`)
 
       const curTxs = collect(txids)
@@ -137,7 +133,7 @@ class TokenLiquidity {
       const lastTransaction = txid
 
       // Get the sender's address for this transaction.
-      const userAddr = await txs.getUserAddr2(lastTransaction)
+      const userAddr = await this.txs.getUserAddr2(lastTransaction)
       wlogger.info(`Sender's address: ${userAddr}`)
 
       // Exit if the userAddr is the same as the bchAddr for this app.
@@ -155,7 +151,7 @@ class TokenLiquidity {
       }
 
       // Process new txid.
-      const isTokenTx = await slp2.tokenTxInfo(lastTransaction)
+      const isTokenTx = await this.slp2.tokenTxInfo(lastTransaction)
       wlogger.debug(`isTokenTx: ${isTokenTx}`)
 
       let newTokenBalance = tokenBalance
@@ -197,14 +193,14 @@ class TokenLiquidity {
         wlogger.debug(`obj.satoshisToSend: ${obj.satoshisToSend}`)
 
         // Send BCH to the user.
-        const hex = await bch.createBchTx(obj)
-        const userBCHTXID = await bch.broadcastBchTx(hex)
+        const hex = await this.bch.createBchTx(obj)
+        const userBCHTXID = await this.bch.broadcastBchTx(hex)
         wlogger.info(`BCH sent to user: ${userBCHTXID}`)
 
         // User sent BCH
       } else {
         // Get the BCH send amount.
-        let bchQty = await bch.recievedBch(lastTransaction, BCH_ADDR1)
+        let bchQty = await this.bch.recievedBch(lastTransaction, BCH_ADDR1)
         wlogger.info(`${bchQty} BCH recieved.`)
 
         // Ensure bchQty is a number
@@ -254,7 +250,7 @@ class TokenLiquidity {
         console.log('tokensOut', tokensOut)
 
         // Check if transaction includes an OP_RETURN instruction
-        const opReturnData = await bch.readOpReturn(txid)
+        const opReturnData = await this.bch.readOpReturn(txid)
         // console.log(`opReturnData: ${JSON.stringify(opReturnData, null, 2)}`)
 
         // If the TX contains a valid OP_RETURN code
@@ -266,16 +262,16 @@ class TokenLiquidity {
 
             // Call a method in the slp library to burn a select amount of tokens
             // instead of sending them to a return address.
-            const hex = await slp2.burnTokenTx(retObj.tokensOut)
-            await slp2.broadcastTokenTx(hex)
+            const hex = await this.slp2.burnTokenTx(retObj.tokensOut)
+            await this.slp2.broadcastTokenTx(hex)
           }
 
           // Normal BCH transaction with no OP_RETURN.
         } else {
           // Send Tokens
-          const tokenHex = await slp2.createTokenTx(userAddr, tokensOut, 245)
+          const tokenHex = await this.slp2.createTokenTx(userAddr, tokensOut, 245)
 
-          await slp2.broadcastTokenTx(tokenHex)
+          await this.slp2.broadcastTokenTx(tokenHex)
         }
       }
 
@@ -300,6 +296,11 @@ class TokenLiquidity {
       wlogger.error(`Error in token-liquidity.js/processTx(${inObj.txid})`)
       throw err
     }
+  }
+
+  // Backwards-compatible alias retained for existing tests/callers.
+  async compareLastTransaction (obj) {
+    return this.processTx(obj)
   }
 
   // This function wraps the tryProcessTx() function with the p-retry library.
@@ -694,4 +695,4 @@ class TokenLiquidity {
   }
 }
 
-module.exports = TokenLiquidity
+export default TokenLiquidity

@@ -4,16 +4,19 @@
   logging library.
 */
 
-'use strict'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import winston from 'winston'
+import 'winston-daily-rotate-file'
 
-const winston = require('winston')
-require('winston-daily-rotate-file')
+import config from '../../config/index.js'
 
-const config = require('../../config')
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Configure daily-rotation transport.
 const transport = new winston.transports.DailyRotateFile({
-  filename: `${__dirname.toString()}/../../logs/koa-${config.env}-%DATE%.log`,
+  filename: path.join(__dirname, '../../logs', `koa-${config.env}-%DATE%.log`),
   datePattern: 'YYYY-MM-DD',
   zippedArchive: false,
   maxSize: '1m', // 1 megabyte
@@ -24,38 +27,27 @@ const transport = new winston.transports.DailyRotateFile({
   )
 })
 
-transport.on('rotate', function (oldFilename, newFilename) {
-  wlogger.info('Rotating log files')
-})
-
 // This controls what goes into the log FILES
 const wlogger = winston.createLogger({
   level: 'verbose',
   format: winston.format.json(),
   transports: [
-    //
-    // - Write to all logs with level `info` and below to `combined.log`
-    // - Write all logs error (and below) to `error.log`.
-    //
-    // new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    // new winston.transports.File({ filename: 'logs/combined.log' })
     transport
   ]
 })
 
-// Add simple logging to the console.
-// if (process.env.APP_ENV !== 'test') {
+transport.on('rotate', function (oldFilename, newFilename) {
+  wlogger.info('Rotating log files')
+})
 
-// if (process.env.TEST_ENV !== 'unit') {
-// console.log('config.env: ', config.env)
+// Add simple logging to the console.
 if (config.env !== 'test') {
   wlogger.add(
     new winston.transports.Console({
       format: winston.format.simple(),
-      // level: 'verbose'
       level: 'debug'
     })
   )
 }
 
-module.exports = wlogger
+export default wlogger

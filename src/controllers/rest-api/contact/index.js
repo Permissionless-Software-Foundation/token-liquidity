@@ -2,15 +2,11 @@
   REST API library for /contact route.
 */
 
-// Public npm libraries.
-const Router = require('koa-router')
+import Router from 'koa-router'
+import ContactRESTControllerLib from './controller.js'
 
-// Local libraries.
-const ContactRESTControllerLib = require('./controller')
-
-class ContactRouter {
+export class ContactRouter {
   constructor (localConfig = {}) {
-    // Dependency Injection.
     this.adapters = localConfig.adapters
     if (!this.adapters) {
       throw new Error(
@@ -29,10 +25,8 @@ class ContactRouter {
       useCases: this.useCases
     }
 
-    // Encapsulate dependencies.
     this.contactRESTController = new ContactRESTControllerLib(dependencies)
 
-    // Instantiate the router and set the base route.
     const baseUrl = '/contact'
     this.router = new Router({ prefix: baseUrl })
   }
@@ -44,13 +38,11 @@ class ContactRouter {
       )
     }
 
-    // Define the routes and attach the controller.
     this.router.post('/email', this.contactRESTController.email)
 
-    // Attach the Controller routes to the Koa app.
     app.use(this.router.routes())
     app.use(this.router.allowedMethods())
   }
 }
 
-module.exports = ContactRouter
+export default ContactRouter

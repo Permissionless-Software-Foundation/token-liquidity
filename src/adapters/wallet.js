@@ -2,12 +2,9 @@
   Adapter library for working with BCH wallet and SLP tokens.
 */
 
-// Global npm libraries
-const BchWallet = require('minimal-slp-wallet')
-
-// Local libraries
-const wlogger = require('./wlogger')
-const config = require('../../config')
+import BchWallet from 'minimal-slp-wallet'
+import wlogger from './wlogger.js'
+import config from '../../config/index.js'
 
 class Wallet {
   constructor (localConfig = {}) {
@@ -17,6 +14,7 @@ class Wallet {
     this.BchWallet = BchWallet
     this.wallet = new BchWallet(undefined, {
       interface: 'rest-api',
+      restURL: config.restURL,
       noUpdate: true
     })
     this.bchjs = this.wallet.bchjs
@@ -25,14 +23,14 @@ class Wallet {
   }
 
   // Returns true after the wallet has been initialized.
-  async initWallet (mnemonic, apiToken) {
+  async initWallet (mnemonic) {
     if (!mnemonic) {
       throw new Error('Must pass mnemonic when instantiating the Wallet class library.')
     }
 
     this.wallet = new this.BchWallet(mnemonic, {
       interface: 'rest-api',
-      apiToken: apiToken
+      restURL: config.restURL
     })
     this.bchjs = this.wallet.bchjs
 
@@ -48,7 +46,7 @@ class Wallet {
   // Get balances of BCH and tokens.
   async getBalances () {
     try {
-      // Update the wallet UTOXs.
+      // Update the wallet UTOXs.)
       await this.wallet.getUtxos()
 
       const bchBalance = await this.wallet.getBalance()
@@ -88,4 +86,4 @@ class Wallet {
   }
 }
 
-module.exports = Wallet
+export default Wallet

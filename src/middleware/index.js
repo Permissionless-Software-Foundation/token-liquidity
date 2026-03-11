@@ -1,4 +1,4 @@
-module.exports = function errorMiddleware () {
+export default function errorMiddleware () {
   return async (ctx, next) => {
     try {
       await next()

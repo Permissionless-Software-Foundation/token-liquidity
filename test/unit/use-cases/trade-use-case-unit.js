@@ -2,14 +2,11 @@
   Unit tests for the Trade Use Case library.
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local support libraries
-const Trade = require('../../../src/use-cases/trade')
-const adapters = require('../mocks/adapters')
-const libMockData = require('../mocks/token-liquidity-mock')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import Trade from '../../../src/use-cases/trade.js'
+import adapters from '../mocks/adapters/index.js'
+import * as libMockData from '../mocks/token-liquidity-mock.js'
 
 describe('#trade-use-cases', () => {
   let uut

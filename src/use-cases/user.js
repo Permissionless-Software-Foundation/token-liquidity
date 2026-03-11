@@ -3,10 +3,10 @@
   functions are called by the /user REST API endpoints.
 */
 
-const UserEntity = require('../entities/user')
-const wlogger = require('../adapters/wlogger')
+import UserEntity from '../entities/user.js'
+import wlogger from '../adapters/wlogger.js'
 
-class UserLib {
+export class UserLib {
   constructor (localConfig = {}) {
     // console.log('User localConfig: ', localConfig)
     this.adapters = localConfig.adapters
@@ -181,4 +181,4 @@ class UserLib {
   }
 }
 
-module.exports = UserLib
+export default UserLib

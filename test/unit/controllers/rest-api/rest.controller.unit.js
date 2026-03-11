@@ -2,15 +2,9 @@
   Unit tests for the REST API controllers/rest-api/index.js library.
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local libraries
-const RESTControllers = require('../../../../src/controllers/rest-api/')
-// const mockContext = require('../../../unit/mocks/ctx-mock').context
-// const adapters = require('../../../mocks/adapters')
-// const UseCasesMock = require('../../../mocks/use-cases')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import RESTControllers from '../../../../src/controllers/rest-api/index.js'
 
 const useCases = {}
 const adapters = {}

@@ -9,7 +9,7 @@
   This is a newer map using the hybrid curve and 250 BCH as the inflection point.
 */
 
-const TokenLiquidity = require('../../src/lib/token-liquidity')
+import TokenLiquidity from '../../src/adapters/token-liquidity.js'
 const lib = new TokenLiquidity()
 
 const BCH_QTY_ORIGINAL = 250.0

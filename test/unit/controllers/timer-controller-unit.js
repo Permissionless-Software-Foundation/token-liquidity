@@ -2,15 +2,12 @@
   Unit tests for the timer Controller library
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local libraries
-const TimerControllers = require('../../../src/controllers/timer-controllers')
-const adapters = require('../mocks/adapters')
-const UseCases = require('../mocks/use-cases')
-const useCases = new UseCases()
+import { assert } from 'chai'
+import sinon from 'sinon'
+import TimerControllers from '../../../src/controllers/timer-controllers.js'
+import adapters from '../mocks/adapters/index.js'
+import UseCasesMock from '../mocks/use-cases/index.js'
+const useCases = new UseCasesMock()
 
 describe('#TimerControllers', () => {
   let uut

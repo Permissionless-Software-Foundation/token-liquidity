@@ -2,23 +2,13 @@
   Unit tests for the REST API handler for the /users endpoints.
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local support libraries
-// const adapters = require('../../../mocks/adapters')
-// const UseCasesMock = require('../../../mocks/use-cases')
-// const app = require('../../../mocks/app-mock')
-
-const AuthRESTController = require('../../../../../src/controllers/rest-api/auth/controller')
-let uut
-let sandbox
-let ctx
-
-const mockContext = require('../../../../unit/mocks/ctx-mock').context
+import { assert } from 'chai'
+import sinon from 'sinon'
+import AuthRESTController from '../../../../../src/controllers/rest-api/auth/controller.js'
+import { context as mockContext } from '../../../../unit/mocks/ctx-mock.js'
 
 describe('#Auth-REST-Router', () => {
+  let uut, sandbox, ctx
   // const testUser = {}
 
   beforeEach(() => {

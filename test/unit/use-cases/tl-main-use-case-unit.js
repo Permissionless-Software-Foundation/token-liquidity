@@ -2,14 +2,10 @@
   Unit tests for the tl-main Use Case library.
 */
 
-// Public npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local support libraries
-const TLMain = require('../../../src/use-cases/tl-main')
-const adapters = require('../mocks/adapters')
-// const libMockData = require('../mocks/token-liquidity-mock')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import TLMain from '../../../src/use-cases/tl-main.js'
+import adapters from '../mocks/adapters/index.js'
 
 describe('#tl-main-use-cases', () => {
   let uut

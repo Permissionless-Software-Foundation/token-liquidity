@@ -2,9 +2,8 @@
   Integration test for the email contact library
 */
 
-const assert = require('chai').assert
-
-const ContactLib = require('../../src/adapters/contact')
+import { assert } from 'chai'
+import ContactLib from '../../src/adapters/contact.js'
 let uut
 
 describe('#contact', () => {

@@ -2,23 +2,15 @@
   Unit tests for the util.js library.
 */
 
-'use strict'
+import { assert } from 'chai'
+import sinon from 'sinon'
+import nock from 'nock'
+import fs from 'fs'
+import TLUtils from '../../../src/adapters/util.js'
 
-const assert = require('chai').assert
-const sinon = require('sinon')
-const nock = require('nock')
-
-const TLUtils = require('../../../src/adapters/util')
-
-// const bitboxMock = require('bitbox-mock')
-// const txMockData = require('./mocks/transactions')
-const mockWallet = require('../mocks/testwallet.json')
-
-// const config = require('../../config')
-
-// Used for debugging.
-const util = require('util')
-util.inspect.defaultOptions = { depth: 1 }
+const mockWallet = JSON.parse(
+  fs.readFileSync(new URL('../mocks/testwallet.json', import.meta.url))
+)
 
 // Determine if this is a Unit or Integration test
 // If not specified, default to unit test.

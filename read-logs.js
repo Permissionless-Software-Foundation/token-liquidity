@@ -1,5 +1,5 @@
 // const fs = require('fs')
-const lineReader = require('line-reader')
+import lineReader from 'line-reader'
 
 const FILE_NAME = './logs/token-liquidity-2020-01-02.log'
 

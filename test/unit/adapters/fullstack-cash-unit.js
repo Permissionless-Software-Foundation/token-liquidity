@@ -2,12 +2,9 @@
   Unit tests for the fullstack-cash.js adapter library
 */
 
-// Global npm libraries
-const assert = require('chai').assert
-const sinon = require('sinon')
-
-// Local libraries
-const FullStack = require('../../../src/adapters/fullstack-cash')
+import { assert } from 'chai'
+import sinon from 'sinon'
+import FullStack from '../../../src/adapters/fullstack-cash.js'
 
 describe('#FullStack', () => {
   let sandbox
